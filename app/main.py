@@ -342,9 +342,9 @@ async def get_lcu_champ_select() -> dict[str, Any]:
 
 
 @app.get("/api/live-game")
-async def get_live_game() -> dict[str, Any]:
+async def get_live_game(lang: str = "es") -> dict[str, Any]:
     """Lee el estado oficial In-Game (127.0.0.1:2999) cuando hay una partida en curso."""
-    return await live_game_monitor.get_live_state()
+    return await live_game_monitor.get_live_state(lang=lang)
 
 
 @app.post("/api/lcu/import-setup")

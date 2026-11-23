@@ -342,7 +342,8 @@ class WarmupHub {
     this.accEl = document.getElementById('micro-acc');
     this.bestEl = document.getElementById('micro-best');
     this.microBest = parseInt(localStorage.getItem('NoFlash_micro_best') || '0', 10);
-    if (this.bestEl) this.bestEl.textContent = `🏆 Récord: ${this.microBest}`;
+    const isEnInit = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+    if (this.bestEl) this.bestEl.textContent = `🏆 ${isEnInit ? 'Best' : 'Récord'}: ${this.microBest}`;
 
     const startHandler = () => this.startMicro();
     document.getElementById('btn-micro-start')?.addEventListener('click', startHandler);
@@ -442,15 +443,21 @@ class WarmupHub {
     this.arena?.querySelectorAll('.micro-target').forEach(el => el.remove());
 
     if (showSummary && this.overlay) {
+      const isEnEnd = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
       if (this.microScore > this.microBest) {
         this.microBest = this.microScore;
         localStorage.setItem('NoFlash_micro_best', String(this.microBest));
-        if (this.bestEl) this.bestEl.textContent = `🏆 Récord: ${this.microBest}`;
+        if (this.bestEl) this.bestEl.textContent = `🏆 ${isEnEnd ? 'Best' : 'Récord'}: ${this.microBest}`;
       }
       const avgRt = this.microRts.length > 0
         ? Math.round(this.microRts.reduce((a, b) => a + b, 0) / this.microRts.length)
         : 0;
-      this.overlay.innerHTML = `
+      this.overlay.innerHTML = isEnEnd ? `
+        <p><strong>Warm-Up Complete!</strong><br>Score: <strong>${this.microScore}</strong> · Avg reaction: <strong>${avgRt} ms</strong></p>
+        <button class="btn-analyze" id="btn-micro-retry" style="max-width:220px;margin:0.5rem auto 0;">
+          <i class="fa-solid fa-rotate-right"></i> Play Again
+        </button>
+      ` : `
         <p><strong>¡Calentamiento terminado!</strong><br>Puntaje: <strong>${this.microScore}</strong> · Reacción promedio: <strong>${avgRt} ms</strong></p>
         <button class="btn-analyze" id="btn-micro-retry" style="max-width:220px;margin:0.5rem auto 0;">
           <i class="fa-solid fa-rotate-right"></i> Jugar otra vez

@@ -319,8 +319,9 @@ class DraftAnalyzer {
 
         // Open champion search
         this.state.activeSlot = { side, index: idx };
-        const label = side === 'ally' ? 'Aliado' : 'Enemigo';
-        this.searchSlotLabel.textContent = `Seleccionar campeón — ${label} #${idx + 1}`;
+        const isEnSlot = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+        const label = side === 'ally' ? (isEnSlot ? 'Ally' : 'Aliado') : (isEnSlot ? 'Enemy' : 'Enemigo');
+        this.searchSlotLabel.textContent = `${isEnSlot ? 'Select champion' : 'Seleccionar campeón'} — ${label} #${idx + 1}`;
         this.champSearchInput.value = '';
         this.renderChampionSearch('');
         this.champSearchWrapper.style.display = 'flex';
@@ -344,11 +345,12 @@ class DraftAnalyzer {
       this.btnCopyChat.addEventListener('click', async () => {
         const msg = this.coachChatTextEl ? this.coachChatTextEl.textContent.trim() : '';
         if (!msg) return;
+        const isEnCopy = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
         try {
           await navigator.clipboard.writeText(msg);
-          this.showToast('¡Mensaje copiado! Pegalo en el chat de Champ Select.', 'success');
+          this.showToast(isEnCopy ? 'Copied! Paste it into Champ Select chat.' : '¡Mensaje copiado! Pegalo en el chat de Champ Select.', 'success');
         } catch {
-          this.showToast('No se pudo copiar automáticamente.', 'error');
+          this.showToast(isEnCopy ? 'Could not copy automatically.' : 'No se pudo copiar automáticamente.', 'error');
         }
       });
     }
@@ -429,8 +431,9 @@ class DraftAnalyzer {
     const region = this.regionSelect.value;
     const platform = this.platformSelect.value;
 
+    const isEnAn = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
     if (!gameName || !tagLine || !region || !platform) {
-      this.showToast('Completá todos los campos antes de analizar.', 'error');
+      this.showToast(isEnAn ? 'Please fill in all fields before analyzing.' : 'Completá todos los campos antes de analizar.', 'error');
       return;
     }
 
@@ -451,14 +454,14 @@ class DraftAnalyzer {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || `Error ${res.status}: No se pudo analizar al jugador.`);
+        throw new Error(err.detail || (isEnAn ? `Error ${res.status}: Could not analyze player.` : `Error ${res.status}: No se pudo analizar al jugador.`));
       }
 
       const data = await res.json();
       this.state.playerData = data;
       this.saveAccount({ gameName, tagLine, region, platform });
       if (this.activeProfileLabel) {
-        this.activeProfileLabel.textContent = `${gameName}#${tagLine} · Cambiar`;
+        this.activeProfileLabel.textContent = `${gameName}#${tagLine} · ${isEnAn ? 'Switch' : 'Cambiar'}`;
       }
 
       // Enable nav tabs
@@ -486,7 +489,7 @@ class DraftAnalyzer {
 
       // Switch to analysis
       this.switchView('analysis');
-      this.showToast('¡Análisis completado!', 'success');
+      this.showToast(isEnAn ? 'Analysis complete!' : '¡Análisis completado!', 'success');
     } catch (err) {
       this.showToast(err.message, 'error');
     } finally {
@@ -754,7 +757,9 @@ class DraftAnalyzer {
         </div>
       </div>
     `;
-    card.title = 'Click para ver análisis detallado de este campeón';
+    card.title = (typeof getCurrentLang === 'function' && getCurrentLang() !== 'es')
+      ? 'Click for detailed champion breakdown'
+      : 'Click para ver análisis detallado de este campeón';
     card.addEventListener('click', () => this.openChampionModal(champName));
     return card;
   }
@@ -777,10 +782,11 @@ class DraftAnalyzer {
     const strengthsEl = document.getElementById('champ-modal-strengths');
     const improvementsEl = document.getElementById('champ-modal-improvements');
 
+    const _tM = (k, fb) => (typeof t === 'function' ? t(k) : fb);
     if (hero) hero.style.backgroundImage = `url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champName}_0.jpg')`;
     if (icon) icon.src = champImgUrl(champName);
     if (nameEl) nameEl.textContent = displayName(champName);
-    if (subEl) subEl.textContent = `${stats.win_rate}% Win Rate · ${stats.games} partidas (${stats.wins}V - ${stats.losses}D) · ${stats.avg_kda} KDA`;
+    if (subEl) subEl.textContent = `${stats.win_rate}% Win Rate · ${stats.games} ${_tM('games_word', 'partidas')} (${stats.wins}${_tM('w_short', 'V')} - ${stats.losses}${_tM('l_short', 'D')}) · ${stats.avg_kda} KDA`;
 
     const deep = stats.deep_analysis || { metrics: {}, strengths: [], improvements: [] };
     const m = deep.metrics || {};
@@ -1023,17 +1029,18 @@ class DraftAnalyzer {
     }
 
     // 1. Bans recomendados
+    const isEnCoach = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
     if (this.coachBansEl) {
       const bans = coach.recommended_bans || [];
       if (bans.length === 0) {
-        this.coachBansEl.innerHTML = '<span class="coach-muted">Sin amenazas críticas detectadas.</span>';
+        this.coachBansEl.innerHTML = `<span class="coach-muted">${isEnCoach ? 'No critical threats detected.' : 'Sin amenazas críticas detectadas.'}</span>`;
       } else {
         this.coachBansEl.innerHTML = bans.map(b => `
           <div class="coach-ban-chip">
             <img src="${champImgUrl(b.champion)}" alt="${displayName(b.champion)}"
                  onerror="this.src='${champImgUrl('Aatrox')}'">
             <div class="coach-ban-info">
-              <span class="coach-ban-name">Banear ${displayName(b.champion)}</span>
+              <span class="coach-ban-name">${isEnCoach ? 'Ban' : 'Banear'} ${displayName(b.champion)}</span>
               <span class="coach-ban-reason">${b.reason}</span>
             </div>
           </div>
@@ -1083,7 +1090,7 @@ class DraftAnalyzer {
             ${gp.teamfights}
           </div>
           <div class="gameplan-item">
-            <strong>🛡️ Amenazas e Itemización</strong>
+            <strong>🛡️ ${isEnCoach ? 'Threats & Itemization' : 'Amenazas e Itemización'}</strong>
             ${gp.itemization}
           </div>
         `;
@@ -1098,10 +1105,11 @@ class DraftAnalyzer {
     const recs = this.state.draftState.recommendations;
 
     if (!recs || recs.length === 0) {
+      const emptyMsg = typeof t === 'function' ? t('empty_recs') : 'Seleccioná tu rol y agregá picks para recibir recomendaciones.';
       this.recsListEl.innerHTML = `
         <div class="empty-recs">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <p>Seleccioná tu rol y agregá picks para recibir recomendaciones.</p>
+          <p>${emptyMsg}</p>
         </div>
       `;
       return;
@@ -1300,14 +1308,15 @@ class DraftAnalyzer {
       if (!status.connected) {
         this.lcuLastSummoner = null;
         this.lcuPill.className = 'lcu-pill';
-        this.lcuText.textContent = 'LoL: Sin detectar';
+        this.lcuText.textContent = typeof t === 'function' ? t('lcu_not_found') : 'LoL: Sin detectar';
         return false;
       }
 
       this.lcuLastSummoner = status.summoner || null;
+      const isEnLcu = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
       const sName = status.summoner?.game_name
         ? `${status.summoner.game_name}#${status.summoner.tag_line || ''}`
-        : 'Conectado';
+        : (isEnLcu ? 'Connected' : 'Conectado');
 
       // Auto-analizar cuenta logueada solo si el usuario no eligió manualmente otra cuenta (ej: modo smurf)
       if (this.lcuLastSummoner && !this.state.playerData && !this.lcuAnalyzing && !this.manualProfileLocked) {
@@ -1316,7 +1325,7 @@ class DraftAnalyzer {
 
       if (status.in_champ_select) {
         this.lcuPill.className = 'lcu-pill in-draft';
-        this.lcuText.textContent = 'EN DRAFT EN VIVO';
+        this.lcuText.textContent = typeof t === 'function' ? t('lcu_live_draft') : 'EN DRAFT EN VIVO';
         await this.syncLiveChampSelect();
         return true;
       } else {
@@ -1373,7 +1382,8 @@ class DraftAnalyzer {
       if (this.state.playerData) {
         if (this.state.currentView !== 'draft') {
           this.switchView('draft');
-          this.showToast('¡Draft en vivo detectado! Recomendando en tiempo real...', 'success');
+          const isEnCs = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+          this.showToast(isEnCs ? 'Live draft detected! Updating recommendations...' : '¡Draft en vivo detectado! Recomendando en tiempo real...', 'success');
         }
         this.updateDraft();
       }
@@ -1480,7 +1490,8 @@ class DraftAnalyzer {
         if (!window.voiceCoach) return;
         const { recommendations, coach } = this.state.draftState;
         if (!recommendations || recommendations.length === 0) {
-          window.voiceCoach.speak('Primero analizá tu cuenta y seleccioná tu rol para darte recomendaciones.', { force: true });
+          const isEnV = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+          window.voiceCoach.speak(isEnV ? 'First analyze your account and select your role to get draft recommendations.' : 'Primero analizá tu cuenta y seleccioná tu rol para darte recomendaciones.', { force: true });
           return;
         }
         window.voiceCoach.speakDraftAdvice(recommendations, coach, true);
@@ -1516,7 +1527,9 @@ class DraftAnalyzer {
 
     const pollLive = async () => {
       try {
-        const res = await fetch('/api/live-game');
+        const curLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
+        const isEnLive = curLang !== 'es';
+        const res = await fetch(`/api/live-game?lang=${encodeURIComponent(curLang)}`);
         if (!res.ok) return;
         const state = await res.json();
 
@@ -1534,9 +1547,9 @@ class DraftAnalyzer {
         if (!this.liveInGameWasActive) {
           this.liveInGameWasActive = true;
           this.switchView('ingame');
-          this.showToast('¡Partida en vivo detectada! Activando Coach In-Game.', 'success');
+          this.showToast(isEnLive ? 'Live match detected! Activating In-Game Coach.' : '¡Partida en vivo detectada! Activando Coach In-Game.', 'success');
           if (window.voiceCoach) {
-            window.voiceCoach.speak('Partida detectada. Mucha suerte en la Grieta.', { dedupeId: 'game_start' });
+            window.voiceCoach.speak(isEnLive ? 'Match detected. Good luck on the Rift.' : 'Partida detectada. Mucha suerte en la Grieta.', { dedupeId: 'game_start' });
           }
         }
 
@@ -1588,7 +1601,7 @@ class DraftAnalyzer {
                   <img src="${champImgUrl(e.champion)}" alt="${displayName(e.champion)}" onerror="this.src='${champImgUrl('Aatrox')}'">
                   <div>
                     <div class="ig-enemy-name">${displayName(e.champion)}</div>
-                    <div class="ig-enemy-lvl">Nivel ${e.level}</div>
+                    <div class="ig-enemy-lvl">${typeof t === 'function' ? t('lvl_prefix') : 'Nivel'} ${e.level}</div>
                   </div>
                 </div>
                 <div class="ig-enemy-spells">${spellsHtml}</div>
@@ -1637,7 +1650,8 @@ class DraftAnalyzer {
         if (btn) btn.classList.remove('on-cd');
         if (window.voiceCoach) {
           const spClean = timer.spellName.split('(')[0].trim();
-          window.voiceCoach.speak(`${spClean} de ${displayName(timer.champ)} volvió.`, { force: false });
+          const isEnSp = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+          window.voiceCoach.speak(isEnSp ? `${displayName(timer.champ)}'s ${spClean} is back up.` : `${spClean} de ${displayName(timer.champ)} volvió.`, { force: false });
         }
       } else {
         const mins = Math.floor(rem / 60);

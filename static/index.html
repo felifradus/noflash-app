@@ -46,8 +46,8 @@
         <button class="nav-tab" data-view="ingame" id="nav-ingame">
           <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">En Partida</span>
         </button>
-        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Riftdle, Calentar Micro (20s) y Quiz de Macro/Builds">
-          <i class="fa-solid fa-gamepad"></i> <span>Mini-Juegos / Warm-Up</span>
+        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Riftdle, Micro Warm-Up & Macro Quiz">
+          <i class="fa-solid fa-gamepad"></i> <span data-i18n="nav_warmup">Mini-Juegos / Warm-Up</span>
         </button>
       </nav>
     </div>
@@ -96,42 +96,42 @@
           <img src="/static/logo.jpg" alt="NoFlash" class="search-logo-img">
         </div>
         <h2 class="search-heading" data-i18n="search_heading">Analizá tu rendimiento en la Grieta</h2>
-        <p class="search-subheading">Ingresá tu Riot ID para obtener un análisis completo de tus campeones y recomendaciones de draft personalizadas.</p>
+        <p class="search-subheading" data-i18n="search_sub">Ingresá tu Riot ID para obtener un análisis completo de tus campeones y recomendaciones de draft personalizadas.</p>
 
         <form id="search-form" class="search-form" autocomplete="off">
           <div class="search-row">
             <div class="input-group">
-              <label for="game-name">Riot ID (Nombre)</label>
-              <input type="text" id="game-name" placeholder="Ej: Faker" required>
+              <label for="game-name" data-i18n="label_riot_id">Riot ID (Nombre)</label>
+              <input type="text" id="game-name" data-i18n-placeholder="ph_gamename" placeholder="Ej: Faker" required>
             </div>
             <div class="input-group tag-group">
-              <label for="tag-line">Tag Line</label>
-              <input type="text" id="tag-line" placeholder="Ej: KR1" required>
+              <label for="tag-line" data-i18n="label_tag">Tag Line</label>
+              <input type="text" id="tag-line" data-i18n-placeholder="ph_tagline" placeholder="Ej: KR1" required>
             </div>
           </div>
 
           <div class="search-row">
             <div class="input-group">
-              <label for="region-select">Región</label>
+              <label for="region-select" data-i18n="label_region">Región</label>
               <select id="region-select" required>
-                <option value="" disabled selected>Seleccionar región</option>
-                <option value="LAS">LAS (Latinoamérica Sur)</option>
-                <option value="LAN">LAN (Latinoamérica Norte)</option>
-                <option value="NA">NA (Norteamérica)</option>
-                <option value="EUW">EUW (Europa Oeste)</option>
-                <option value="EUNE">EUNE (Europa Nórdica & Este)</option>
-                <option value="BR">BR (Brasil)</option>
-                <option value="KR">KR (Corea)</option>
-                <option value="JP">JP (Japón)</option>
-                <option value="OCE">OCE (Oceanía)</option>
-                <option value="TR">TR (Turquía)</option>
-                <option value="RU">RU (Rusia)</option>
+                <option value="" disabled selected data-i18n="sel_region">Seleccionar región</option>
+                <option value="LAS">LAS (Latin America South)</option>
+                <option value="LAN">LAN (Latin America North)</option>
+                <option value="NA">NA (North America)</option>
+                <option value="EUW">EUW (Europe West)</option>
+                <option value="EUNE">EUNE (Europe Nordic & East)</option>
+                <option value="BR">BR (Brazil)</option>
+                <option value="KR">KR (Korea)</option>
+                <option value="JP">JP (Japan)</option>
+                <option value="OCE">OCE (Oceania)</option>
+                <option value="TR">TR (Turkey)</option>
+                <option value="RU">RU (Russia)</option>
               </select>
             </div>
             <div class="input-group">
               <label for="platform-select" data-i18n="label_platform">Plataforma</label>
               <select id="platform-select" required>
-                <option value="" disabled selected>Seleccionar plataforma</option>
+                <option value="" disabled selected data-i18n="sel_platform">Seleccionar plataforma</option>
               </select>
             </div>
           </div>
@@ -151,8 +151,8 @@
         <div id="loading-overlay" class="loading-overlay hidden">
           <div class="spinner-wrapper">
             <div class="spinner"></div>
-            <p class="loading-text">Analizando jugador<span class="dots"></span></p>
-            <p class="loading-sub">Esto puede tomar unos segundos</p>
+            <p class="loading-text"><span data-i18n="loading_player">Analizando jugador...</span><span class="dots"></span></p>
+            <p class="loading-sub" data-i18n="loading_sub">Esto puede tomar unos segundos</p>
           </div>
         </div>
       </div>
@@ -256,11 +256,11 @@
             <div class="coach-header">
               <h3 class="section-title"><i class="fa-solid fa-graduation-cap"></i> <span data-i18n="coach_title">Coach de Draft en Vivo</span></h3>
               <div class="coach-header-actions">
-                <span class="coach-badge">Basado en tus últimas 160 partidas + Maestría</span>
-                <button class="btn-switch-account" id="btn-speak-coach" title="Escuchar el consejo del Coach por voz">
+                <span class="coach-badge" data-i18n="coach_badge_default">Basado en tus últimas 160 partidas + Maestría</span>
+                <button class="btn-switch-account" id="btn-speak-coach" title="Voice Coach">
                   <i class="fa-solid fa-microphone"></i> <span data-i18n="btn_listen">Escuchar</span>
                 </button>
-                <button class="btn-switch-account" id="btn-switch-account" title="Analizar con otra cuenta (ej: tu main mientras jugás en smurf)">
+                <button class="btn-switch-account" id="btn-switch-account" title="Switch account">
                   <i class="fa-solid fa-user-pen"></i> <span id="active-profile-label" data-i18n="btn_other_account">Cambiar cuenta</span>
                 </button>
               </div>
@@ -269,9 +269,9 @@
             <!-- Medidor de Draft Diff + Semáforo de Dodge -->
             <div class="draft-diff-box" id="draft-diff-box" style="display:none;">
               <div class="draft-diff-top">
-                <span class="diff-ally-pct" id="diff-ally-pct">50% Aliados</span>
-                <span class="diff-verdict" id="diff-verdict">🟡 Draft Parejo</span>
-                <span class="diff-enemy-pct" id="diff-enemy-pct">50% Enemigos</span>
+                <span class="diff-ally-pct" id="diff-ally-pct" data-i18n="diff_ally_init">50% Aliados</span>
+                <span class="diff-verdict" id="diff-verdict" data-i18n="diff_even">🟡 Draft Parejo</span>
+                <span class="diff-enemy-pct" id="diff-enemy-pct" data-i18n="diff_enemy_init">50% Enemigos</span>
               </div>
               <div class="draft-diff-bar">
                 <div class="draft-diff-fill" id="draft-diff-fill" style="width:50%"></div>
@@ -283,14 +283,14 @@
               <div class="coach-box">
                 <div class="coach-box-title"><i class="fa-solid fa-ban"></i> <span data-i18n="coach_bans">Qué Banear</span></div>
                 <div id="coach-bans" class="coach-bans-list">
-                  <span class="coach-muted">Seleccioná tu rol para ver bans recomendados.</span>
+                  <span class="coach-muted" data-i18n="coach_bans_wait">Seleccioná tu rol para ver bans recomendados.</span>
                 </div>
               </div>
 
               <!-- Orden de Pick / Swap -->
               <div class="coach-box">
                 <div class="coach-box-title"><i class="fa-solid fa-right-left"></i> <span data-i18n="coach_pick_order">Cuándo Pickear / Swap</span></div>
-                <p id="coach-pick-order" class="coach-text">Esperando datos del draft...</p>
+                <p id="coach-pick-order" class="coach-text" data-i18n="coach_pick_wait">Esperando datos del draft...</p>
               </div>
             </div>
 
@@ -300,8 +300,8 @@
               <div class="coach-chat-box" id="coach-chat-box">
                 <div class="coach-chat-label"><i class="fa-solid fa-comment-dots"></i> <span data-i18n="coach_chat_label">Qué decirle a tu equipo:</span></div>
                 <div class="coach-chat-content">
-                  <span id="coach-chat-text">Esperando composición...</span>
-                  <button class="btn-copy-chat" id="btn-copy-chat" title="Copiar mensaje para pegar en el chat de LoL">
+                  <span id="coach-chat-text" data-i18n="coach_chat_wait">Esperando composición...</span>
+                  <button class="btn-copy-chat" id="btn-copy-chat" title="Copy to clipboard">
                     <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">Copiar</span>
                   </button>
                 </div>
@@ -312,10 +312,10 @@
             <div class="gameplan-box" id="coach-gameplan">
               <div class="gameplan-header">
                 <span class="gameplan-title"><i class="fa-solid fa-map"></i> <span data-i18n="gameplan_title">Plan de Partida (Qué hacer en juego)</span></span>
-                <span class="gameplan-status" id="gameplan-status">Esperando picks...</span>
+                <span class="gameplan-status" id="gameplan-status" data-i18n="gp_wait_status">Esperando picks...</span>
               </div>
               <div id="gameplan-content" class="gameplan-grid">
-                <p class="coach-muted">Cuando avancen los picks del draft, acá vas a ver tu Win Condition, Early Game, Teamfights e Itemización.</p>
+                <p class="coach-muted" data-i18n="gp_wait_body">Cuando avancen los picks del draft, acá vas a ver tu Win Condition, Early Game, Teamfights e Itemización.</p>
               </div>
             </div>
           </div>
@@ -326,7 +326,7 @@
             <div id="recommendations-list" class="recommendations-list coach-recs-list">
               <div class="empty-recs">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <p>Seleccioná tu rol y agregá picks (o entrá a Champ Select) para recibir recomendaciones.</p>
+                <p data-i18n="empty_recs">Seleccioná tu rol y agregá picks (o entrá a Champ Select) para recibir recomendaciones.</p>
               </div>
             </div>
           </div>
@@ -377,15 +377,15 @@
           <!-- Champion Search -->
           <div class="champion-search-wrapper" id="champion-search-wrapper" style="display:none;">
             <div class="champion-search-box">
-              <h4 id="search-slot-label">Seleccionar campeón</h4>
+              <h4 id="search-slot-label" data-i18n="sel_champ">Seleccionar campeón</h4>
               <div class="search-input-wrap">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" id="champion-search-input" placeholder="Buscar campeón...">
+                <input type="text" id="champion-search-input" data-i18n-placeholder="search_champ_ph" placeholder="Buscar campeón...">
               </div>
               <div class="champion-search-results" id="champion-search-results">
                 <!-- Rendered by JS -->
               </div>
-              <button class="btn-close-search" id="btn-close-search"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+              <button class="btn-close-search" id="btn-close-search"><i class="fa-solid fa-xmark"></i> <span data-i18n="btn_close">Cerrar</span></button>
             </div>
           </div>
         </div>
@@ -407,23 +407,23 @@
         <!-- Cabecera en vivo -->
         <div class="ingame-header-bar">
           <div class="ingame-stat-chip">
-            <span class="ig-label">Tiempo</span>
+            <span class="ig-label" data-i18n="ig_time">Tiempo</span>
             <span class="ig-val" id="ig-time">00:00</span>
           </div>
           <div class="ingame-stat-chip">
-            <span class="ig-label">Tu Campeón</span>
+            <span class="ig-label" data-i18n="ig_champ">Tu Campeón</span>
             <span class="ig-val" id="ig-champ">—</span>
           </div>
           <div class="ingame-stat-chip">
-            <span class="ig-label">CS / min</span>
+            <span class="ig-label" data-i18n="ig_cs">CS / min</span>
             <span class="ig-val" id="ig-cs">0.0</span>
           </div>
           <div class="ingame-stat-chip">
-            <span class="ig-label">KDA</span>
+            <span class="ig-label" data-i18n="ig_kda">KDA</span>
             <span class="ig-val" id="ig-kda">0/0/0</span>
           </div>
           <div class="ingame-stat-chip">
-            <span class="ig-label">Oro en mano</span>
+            <span class="ig-label" data-i18n="ig_gold">Oro en mano</span>
             <span class="ig-val" id="ig-gold">0g</span>
           </div>
         </div>
@@ -431,16 +431,16 @@
         <div class="ingame-grid">
           <!-- Avisos tácticos del Coach In-Game -->
           <div class="ingame-card">
-            <h3 class="section-title"><i class="fa-solid fa-headset"></i> Coach en Vivo (Avisos por Voz)</h3>
+            <h3 class="section-title"><i class="fa-solid fa-headset"></i> <span data-i18n="ig_coach_title">Coach en Vivo (Avisos por Voz)</span></h3>
             <div id="ig-alerts-list" class="ig-alerts-list">
-              <p class="coach-muted">Monitoreando objetivos, niveles e ítems enemigos...</p>
+              <p class="coach-muted">...</p>
             </div>
           </div>
 
-          <!-- Tracker de Hechizos Enemigos (100% legal: click para iniciar cuenta regresiva) -->
+          <!-- Tracker de Hechizos Enemigos -->
           <div class="ingame-card">
-            <h3 class="section-title"><i class="fa-solid fa-stopwatch"></i> Hechizos Enemigos (Click al gastar)</h3>
-            <p class="coach-muted" style="margin-bottom:0.75rem;">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
+            <h3 class="section-title"><i class="fa-solid fa-stopwatch"></i> <span data-i18n="ig_spells_title">Hechizos Enemigos (Click al gastar)</span></h3>
+            <p class="coach-muted" style="margin-bottom:0.75rem;" data-i18n="ig_spells_hint">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
             <div id="ig-enemies-list" class="ig-enemies-list"></div>
           </div>
         </div>
@@ -453,21 +453,21 @@
         <!-- Selector de 3 modos -->
         <div class="warmup-tabs" id="warmup-tabs">
           <button class="warmup-tab active" data-mode="riftdle"><i class="fa-solid fa-dice"></i> Riftdle</button>
-          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> Calentar Micro (20s)</button>
-          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> Quiz Macro & Builds</button>
+          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="wu_tab_micro">Calentar Micro (20s)</span></button>
+          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> <span data-i18n="wu_tab_quiz">Quiz Macro & Builds</span></button>
         </div>
 
         <!-- MODO 1: RIFTDLE -->
         <div class="warmup-pane active" id="pane-riftdle">
           <div class="riftdle-header">
             <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-dice"></i> Riftdle — Adiviná el Campeón</h2>
-              <p class="coach-muted" style="margin:0;">🟢 Exacto · 🟡 Parcial · 🔴 No coincide</p>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-dice"></i> <span data-i18n="rd_title">Riftdle — Adiviná el Campeón</span></h2>
+              <p class="coach-muted" style="margin:0;" data-i18n="rd_legend">🟢 Exacto · 🟡 Parcial · 🔴 No coincide</p>
             </div>
             <div class="riftdle-actions">
               <span class="riftdle-streak-pill" id="riftdle-streak">🔥 Racha: 0</span>
-              <button class="btn-switch-account" id="btn-riftdle-hint"><i class="fa-solid fa-lightbulb"></i> Pista</button>
-              <button class="btn-switch-account" id="btn-riftdle-new"><i class="fa-solid fa-shuffle"></i> Nuevo</button>
+              <button class="btn-switch-account" id="btn-riftdle-hint"><i class="fa-solid fa-lightbulb"></i> <span data-i18n="rd_hint">Pista</span></button>
+              <button class="btn-switch-account" id="btn-riftdle-new"><i class="fa-solid fa-shuffle"></i> <span data-i18n="rd_new">Nuevo</span></button>
             </div>
           </div>
 
@@ -475,15 +475,15 @@
           <div id="riftdle-win-banner" class="riftdle-win-banner" style="display:none;"></div>
 
           <div class="riftdle-search-wrap">
-            <input type="text" id="riftdle-input" placeholder="Escribí el nombre de un campeón (ej: Jinx, Zed, Thresh)..." autocomplete="off">
+            <input type="text" id="riftdle-input" data-i18n-placeholder="rd_placeholder" placeholder="Escribí el nombre de un campeón (ej: Jinx, Zed, Thresh)..." autocomplete="off">
             <div id="riftdle-dropdown" class="riftdle-dropdown" style="display:none;"></div>
           </div>
 
           <div class="riftdle-col-headers">
-            <span>Campeón</span>
-            <span>Rol</span>
-            <span>Daño</span>
-            <span>Clase</span>
+            <span data-i18n="rd_col_champ">Campeón</span>
+            <span data-i18n="rd_col_role">Rol</span>
+            <span data-i18n="rd_col_dmg">Daño</span>
+            <span data-i18n="rd_col_class">Clase</span>
           </div>
           <div id="riftdle-board" class="riftdle-board"></div>
         </div>
@@ -492,25 +492,25 @@
         <div class="warmup-pane" id="pane-micro">
           <div class="riftdle-header">
             <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-crosshairs"></i> Calentamiento de Micro (20s)</h2>
-              <p class="coach-muted" style="margin:0;">Click rápido en los objetivos <strong style="color:#f6d365;">dorados</strong> · Evitá los <strong style="color:#f87171;">rojos</strong> (skillshots).</p>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="mi_title">Calentamiento de Micro (20s)</span></h2>
+              <p class="coach-muted" style="margin:0;" data-i18n="mi_sub">Click rápido en objetivos dorados · Evitá los rojos (skillshots).</p>
             </div>
             <div class="riftdle-actions">
               <span class="riftdle-streak-pill" id="micro-best">🏆 Récord: 0</span>
-              <button class="btn-switch-account" id="btn-micro-start"><i class="fa-solid fa-play"></i> Empezar</button>
+              <button class="btn-switch-account" id="btn-micro-start"><i class="fa-solid fa-play"></i> <span data-i18n="mi_start">Empezar</span></button>
             </div>
           </div>
           <div class="micro-stats-bar">
             <span>⏱️ <strong id="micro-time">20.0s</strong></span>
-            <span>🎯 Aciertos: <strong id="micro-score">0</strong></span>
-            <span>⚡ Reacción: <strong id="micro-rt">— ms</strong></span>
-            <span>📊 Precisión: <strong id="micro-acc">100%</strong></span>
+            <span>🎯 <span data-i18n="mi_hits">Aciertos:</span> <strong id="micro-score">0</strong></span>
+            <span>⚡ <span data-i18n="mi_rt">Reacción:</span> <strong id="micro-rt">— ms</strong></span>
+            <span>📊 <span data-i18n="mi_acc">Precisión:</span> <strong id="micro-acc">100%</strong></span>
           </div>
           <div class="micro-arena" id="micro-arena">
             <div class="micro-overlay-msg" id="micro-overlay">
-              <p>Calentá el mouse y los reflejos antes de tu partida.</p>
+              <p data-i18n="mi_overlay">Calentá el mouse y los reflejos antes de tu partida.</p>
               <button class="btn-analyze" id="btn-micro-start-big" style="max-width:220px;margin:0.5rem auto 0;">
-                <i class="fa-solid fa-bolt"></i> Arrancar (20s)
+                <i class="fa-solid fa-bolt"></i> <span data-i18n="mi_go">Arrancar (20s)</span>
               </button>
             </div>
           </div>
@@ -520,17 +520,17 @@
         <div class="warmup-pane" id="pane-quiz">
           <div class="riftdle-header">
             <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-brain"></i> Quiz de Macro & Itemización</h2>
-              <p class="coach-muted" style="margin:0;">Decisiones reales de SoloQ: qué buildear y cómo jugar el mapa.</p>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-brain"></i> <span data-i18n="qz_title">Quiz de Macro & Itemización</span></h2>
+              <p class="coach-muted" style="margin:0;" data-i18n="qz_sub">Decisiones reales de SoloQ: qué buildear y cómo jugar el mapa.</p>
             </div>
             <div class="riftdle-actions">
               <span class="riftdle-streak-pill" id="quiz-score-pill">✅ 0 / 0</span>
-              <button class="btn-switch-account" id="btn-quiz-next"><i class="fa-solid fa-forward"></i> Siguiente</button>
+              <button class="btn-switch-account" id="btn-quiz-next"><i class="fa-solid fa-forward"></i> <span data-i18n="qz_next">Siguiente</span></button>
             </div>
           </div>
           <div class="quiz-card" id="quiz-card">
             <span class="quiz-category" id="quiz-category">BUILD</span>
-            <h3 class="quiz-question" id="quiz-question">Cargando escenario...</h3>
+            <h3 class="quiz-question" id="quiz-question">...</h3>
             <div class="quiz-options" id="quiz-options"></div>
             <div class="quiz-feedback" id="quiz-feedback" style="display:none;"></div>
           </div>
@@ -540,9 +540,9 @@
 
     <!-- POP-UP AMIGABLE DE COLA / INACTIVIDAD -->
     <div class="idle-popup" id="idle-popup" style="display:none;">
-      <button class="idle-popup-close" id="idle-popup-close" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-      <div class="idle-popup-title">⏳ ¿Esperando cola o al pedo?</div>
-      <p class="idle-popup-text">Calentá reflejos o tirate una ronda rápida mientras encontrás partida:</p>
+      <button class="idle-popup-close" id="idle-popup-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="idle-popup-title" data-i18n="idle_title">⏳ ¿Esperando cola o al pedo?</div>
+      <p class="idle-popup-text" data-i18n="idle_sub">Calentá reflejos o tirate una ronda rápida mientras encontrás partida:</p>
       <div class="idle-popup-btns">
         <button class="idle-btn" data-go="micro">🎯 Micro (20s)</button>
         <button class="idle-btn" data-go="quiz">🧠 Macro/Builds</button>
@@ -583,9 +583,9 @@
   </footer>
 
   <!-- App JS -->
-  <script src="/static/js/i18n.js?v=26"></script>
-  <script src="/static/js/voice.js?v=26"></script>
-  <script src="/static/js/riftdle.js?v=26"></script>
-  <script src="/static/js/app.js?v=26"></script>
+  <script src="/static/js/i18n.js?v=27"></script>
+  <script src="/static/js/voice.js?v=27"></script>
+  <script src="/static/js/riftdle.js?v=27"></script>
+  <script src="/static/js/app.js?v=27"></script>
 </body>
 </html>

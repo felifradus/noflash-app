@@ -33,9 +33,30 @@ const TRANSLATIONS = {
     ig_test_voice: 'Probar Coach por Voz ahora',
     ig_time: 'Tiempo', ig_champ: 'Tu Campeón', ig_cs: 'CS / min', ig_kda: 'KDA', ig_gold: 'Oro en mano',
     ig_coach_title: 'Coach en Vivo (Avisos por Voz)', ig_spells_title: 'Hechizos Enemigos (Click al gastar)',
+    ig_spells_hint: 'Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.',
     coach_badge_prefix: 'Últimas', coach_badge_suffix: 'partidas + Maestría',
     bar_farm: '🌾 Farmeo', bar_dmg: '💥 Daño / min', bar_kp: '⚔️ Participación', bar_surv: '🛡️ Supervivencia',
     deaths_per_g: 'muertes/p',
+    nav_warmup: 'Mini-Juegos / Warm-Up',
+    wu_tab_micro: 'Calentar Micro (20s)', wu_tab_quiz: 'Quiz Macro & Builds',
+    rd_title: 'Riftdle — Adiviná el Campeón', rd_legend: '🟢 Exacto · 🟡 Parcial · 🔴 No coincide',
+    rd_hint: 'Pista', rd_new: 'Nuevo', rd_placeholder: 'Escribí el nombre de un campeón (ej: Jinx, Zed, Thresh)...',
+    rd_col_champ: 'Campeón', rd_col_role: 'Rol', rd_col_dmg: 'Daño', rd_col_class: 'Clase',
+    mi_title: 'Calentamiento de Micro (20s)', mi_sub: 'Click rápido en objetivos dorados · Evitá los rojos (skillshots).',
+    mi_start: 'Empezar', mi_hits: 'Aciertos:', mi_rt: 'Reacción:', mi_acc: 'Precisión:',
+    mi_overlay: 'Calentá el mouse y los reflejos antes de tu partida.', mi_go: 'Arrancar (20s)',
+    qz_title: 'Quiz de Macro & Itemización', qz_sub: 'Decisiones reales de SoloQ: qué buildear y cómo jugar el mapa.', qz_next: 'Siguiente',
+    idle_title: '⏳ ¿Esperando cola o al pedo?', idle_sub: 'Calentá reflejos o tirate una ronda rápida mientras encontrás partida:',
+    sel_region: 'Seleccionar región', sel_platform: 'Seleccionar plataforma',
+    loading_player: 'Analizando jugador...', loading_sub: 'Esto puede tomar unos segundos',
+    search_champ_ph: 'Buscar campeón...', sel_champ: 'Seleccionar campeón', btn_close: 'Cerrar',
+    ph_gamename: 'Ej: Faker', ph_tagline: 'Ej: KR1',
+    coach_badge_default: 'Basado en tus últimas 160 partidas + Maestría',
+    diff_ally_init: '50% Aliados', diff_enemy_init: '50% Enemigos', diff_even: '🟡 Draft Parejo',
+    coach_bans_wait: 'Seleccioná tu rol para ver bans recomendados.',
+    coach_pick_wait: 'Esperando datos del draft...', coach_chat_wait: 'Esperando composición...',
+    gp_wait_status: 'Esperando picks...',
+    gp_wait_body: 'Cuando avancen los picks del draft, acá vas a ver tu Win Condition, Early Game, Teamfights e Itemización.',
     disclaimer: 'NoFlash no está respaldado por Riot Games ni refleja las opiniones de Riot Games. League of Legends y Riot Games son marcas registradas de Riot Games, Inc.',
   },
   en: {
@@ -67,9 +88,30 @@ const TRANSLATIONS = {
     ig_test_voice: 'Test Voice Coach now',
     ig_time: 'Time', ig_champ: 'Champion', ig_cs: 'CS / min', ig_kda: 'KDA', ig_gold: 'Gold in hand',
     ig_coach_title: 'Live Coach (Voice Callouts)', ig_spells_title: 'Enemy Spells (Click when used)',
+    ig_spells_hint: 'Click any enemy spell when they use it to start its cooldown timer. Voice Coach calls out when it is back up.',
     coach_badge_prefix: 'Last', coach_badge_suffix: 'games + Mastery',
     bar_farm: '🌾 Farming', bar_dmg: '💥 Damage / min', bar_kp: '⚔️ Kill Participation', bar_surv: '🛡️ Survivability',
     deaths_per_g: 'deaths/g',
+    nav_warmup: 'Mini-Games / Warm-Up',
+    wu_tab_micro: 'Micro Warm-Up (20s)', wu_tab_quiz: 'Macro & Builds Quiz',
+    rd_title: 'Riftdle — Guess the Champion', rd_legend: '🟢 Exact · 🟡 Partial · 🔴 Miss',
+    rd_hint: 'Hint', rd_new: 'New', rd_placeholder: 'Type any champion name (e.g. Jinx, Zed, Thresh)...',
+    rd_col_champ: 'Champion', rd_col_role: 'Role', rd_col_dmg: 'Damage', rd_col_class: 'Class',
+    mi_title: 'Micro Warm-Up (20s)', mi_sub: 'Click gold targets fast · Avoid red skillshots.',
+    mi_start: 'Start', mi_hits: 'Hits:', mi_rt: 'Reaction:', mi_acc: 'Accuracy:',
+    mi_overlay: 'Warm up your mouse accuracy and reflexes before queueing.', mi_go: 'Start (20s)',
+    qz_title: 'Macro & Itemization Quiz', qz_sub: 'Real SoloQ scenarios: what to build and how to play the map.', qz_next: 'Next',
+    idle_title: '⏳ Waiting in queue?', idle_sub: 'Warm up your mechanics or play a quick round while waiting for a match:',
+    sel_region: 'Select region', sel_platform: 'Select platform',
+    loading_player: 'Analyzing player...', loading_sub: 'This may take a few seconds',
+    search_champ_ph: 'Search champion...', sel_champ: 'Select champion', btn_close: 'Close',
+    ph_gamename: 'e.g. Faker', ph_tagline: 'e.g. KR1',
+    coach_badge_default: 'Based on your last 160 games + Mastery',
+    diff_ally_init: '50% Allies', diff_enemy_init: '50% Enemies', diff_even: '🟡 Even Draft',
+    coach_bans_wait: 'Select your role to see recommended bans.',
+    coach_pick_wait: 'Waiting for draft data...', coach_chat_wait: 'Waiting for team comp...',
+    gp_wait_status: 'Waiting for picks...',
+    gp_wait_body: 'As draft picks lock in, you will see your Win Condition, Early Game, Teamfights & Itemization here.',
     disclaimer: 'NoFlash is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games. League of Legends and Riot Games are trademarks of Riot Games, Inc.',
   },
   pt: {
@@ -298,7 +340,10 @@ function getCurrentLang() {
 
 function t(key) {
   const lang = getCurrentLang();
-  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.es[key] || key;
+  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key])
+    || (lang !== 'es' ? TRANSLATIONS.en[key] : null)
+    || TRANSLATIONS.es[key]
+    || key;
 }
 
 function applyLanguage(lang) {
@@ -312,8 +357,25 @@ function applyLanguage(lang) {
     if (val) el.textContent = val;
   });
 
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const val = t(key);
+    if (val) el.setAttribute('placeholder', val);
+  });
+
   const select = document.getElementById('lang-select');
   if (select && select.value !== lang) select.value = lang;
+
+  // Re-renderizar Riftdle y Quiz en el nuevo idioma
+  if (window.riftdle) {
+    window.riftdle.updateStreakUI();
+    window.riftdle.renderBoard();
+  }
+  if (window.warmupHub) {
+    window.warmupHub.loadQuizQuestion();
+    const bestEl = document.getElementById('micro-best');
+    if (bestEl) bestEl.textContent = `🏆 ${lang === 'es' ? 'Récord' : 'Best'}: ${window.warmupHub.microBest || 0}`;
+  }
 
   // Re-renderizar tarjetas dinámicas y refrescar análisis/Coach en el nuevo idioma
   if (window.app && window.app.state && window.app.state.playerData) {
@@ -322,7 +384,6 @@ function applyLanguage(lang) {
     const activeRoleTab = document.querySelector('#role-tabs .role-tab.active');
     if (activeRoleTab) window.app.renderRoleChampions(activeRoleTab.dataset.role);
     window.app.updateDraft();
-    // Re-sincronizar análisis desde el caché local (~1s) para traducir Pulso de Sesión y Pool
     if (typeof window.app.refreshPlayerLanguage === 'function') {
       window.app.refreshPlayerLanguage();
     }

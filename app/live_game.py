@@ -64,7 +64,7 @@ class LiveGameMonitor:
             self._client = httpx.AsyncClient(verify=False, timeout=1.5)
         return self._client
 
-    async def get_live_state(self) -> dict[str, Any]:
+    async def get_live_state(self, lang: str = "es") -> dict[str, Any]:
         try:
             client = self._get_client()
             resp = await client.get(LIVE_CLIENT_URL)
@@ -137,63 +137,64 @@ class LiveGameMonitor:
 
         # ── Generar avisos tácticos en vivo (con ID único para que la voz no repita) ──
         alerts: list[dict[str, str]] = []
+        is_en = (lang or "es").lower() != "es"
 
         # 1. Timers clave de objetivos y ventanas de gank/roam (100% legal por reloj oficial)
         if 170 <= game_time <= 195:
             alerts.append({
                 "id": "jg_first_clear",
                 "type": "warning",
-                "title": "Ventana de 1er gank (Min 3:00)",
-                "message": "Ojo: el jungla enemigo está terminando su primer clear. Revisá el río y poné un ward.",
+                "title": "1st Gank Window (3:00)" if is_en else "Ventana de 1er gank (Min 3:00)",
+                "message": "Watch out: the enemy jungler is finishing their first clear. Ward river now." if is_en else "Ojo: el jungla enemigo está terminando su primer clear. Revisá el río y poné un ward.",
             })
         if 250 <= game_time <= 295:
             alerts.append({
                 "id": "obj_first_drake",
                 "type": "objective",
-                "title": "Primer Dragón en breve",
-                "message": "En menos de un minuto sale el primer Dragón. Empujá oleada y prepará visión en el río.",
+                "title": "First Drake spawning soon" if is_en else "Primer Dragón en breve",
+                "message": "First Drake spawns in under a minute. Push your wave and set up river vision." if is_en else "En menos de un minuto sale el primer Dragón. Empujá oleada y prepará visión en el río.",
             })
         if 310 <= game_time <= 355:
             alerts.append({
                 "id": "obj_grubs",
                 "type": "objective",
-                "title": "Larvas del Vacío (Grubs)",
-                "message": "Las Larvas del Vacío salen en breve. Asegurá prioridad en top y mid.",
+                "title": "Voidgrubs spawning soon" if is_en else "Larvas del Vacío (Grubs)",
+                "message": "Voidgrubs spawn shortly. Secure top and mid lane prio." if is_en else "Las Larvas del Vacío salen en breve. Asegurá prioridad en top y mid.",
             })
         if 360 <= game_time <= 390:
             alerts.append({
                 "id": "roam_check_6m",
                 "type": "warning",
-                "title": "Chequeo de Jungla y Mid (Min 6)",
-                "message": "Revisá el minimapa: si hace un rato no ves al jungla o al mid enemigo, tené cuidado con un posible gank o roam.",
+                "title": "Jungle & Mid check (6:00)" if is_en else "Chequeo de Jungla y Mid (Min 6)",
+                "message": "Check minimap: if enemy jungle or mid has been missing, watch out for a gank or roam." if is_en else "Revisá el minimapa: si hace un rato no ves al jungla o al mid enemigo, tené cuidado con un posible gank o roam.",
             })
         if 540 <= game_time <= 575:
             alerts.append({
                 "id": "roam_check_9m",
                 "type": "warning",
-                "title": "Alerta de rotaciones (Min 9)",
-                "message": "Chequeá el minimapa: si no viste al jungla, mid o top enemigo hace un rato, no te extiendas sin visión.",
+                "title": "Roam & Rotation check (9:00)" if is_en else "Alerta de rotaciones (Min 9)",
+                "message": "Check minimap: don't overextend without vision if enemy jungle or solo laners are missing." if is_en else "Chequeá el minimapa: si no viste al jungla, mid o top enemigo hace un rato, no te extiendas sin visión.",
             })
         if 750 <= game_time <= 785:
             alerts.append({
                 "id": "roam_check_12m",
                 "type": "warning",
-                "title": "Cuidado con flancos y roams",
-                "message": "Recordatorio de mapa: verificá dónde están el jungla y el mid rival antes de empujar la oleada.",
+                "title": "Watch flanks & roams" if is_en else "Cuidado con flancos y roams",
+                "message": "Map reminder: confirm where enemy jungle and mid are before pushing out." if is_en else "Recordatorio de mapa: verificá dónde están el jungla y el mid rival antes de empujar la oleada.",
             })
         if 790 <= game_time <= 835:
             alerts.append({
                 "id": "obj_herald",
                 "type": "objective",
-                "title": "Heraldo de la Grieta",
-                "message": "El Heraldo está por salir. Controlá la visión de top side.",
+                "title": "Rift Herald spawning" if is_en else "Heraldo de la Grieta",
+                "message": "Rift Herald is about to spawn. Control top-side river vision." if is_en else "El Heraldo está por salir. Controlá la visión de top side.",
             })
         if 1150 <= game_time <= 1195:
             alerts.append({
                 "id": "obj_baron",
                 "type": "objective",
-                "title": "Barón Nashor por nacer",
-                "message": "Falta menos de un minuto para Barón. Comprá Control Wards y no regales picks aislados.",
+                "title": "Baron Nashor spawning soon" if is_en else "Barón Nashor por nacer",
+                "message": "Baron spawns in under a minute. Buy Control Wards and avoid getting picked off." if is_en else "Falta menos de un minuto para Barón. Comprá Control Wards y no regales picks aislados.",
             })
 
         # 2. Spikes de Nivel 6 enemigos
@@ -201,8 +202,8 @@ class LiveGameMonitor:
             alerts.append({
                 "id": f"lv6_{threat}",
                 "type": "warning",
-                "title": f"{threat} llegó a Nivel 6",
-                "message": f"Ojo: {threat} acaba de desbloquear su definitiva. Respetá su rango de all-in.",
+                "title": f"{threat} hit Level 6" if is_en else f"{threat} llegó a Nivel 6",
+                "message": f"Watch out: {threat} just unlocked their ultimate. Respect their all-in range." if is_en else f"Ojo: {threat} acaba de desbloquear su definitiva. Respetá su rango de all-in.",
             })
 
         # 3. Alertas de itemización enemiga
@@ -210,15 +211,15 @@ class LiveGameMonitor:
             alerts.append({
                 "id": "enemy_armor_stack",
                 "type": "tip",
-                "title": "Enemigo armando armadura",
-                "message": "El equipo rival ya acumula varios ítems de armadura. Priorizá penetración de armadura.",
+                "title": "Enemies stacking Armor" if is_en else "Enemigo armando armadura",
+                "message": "Enemy team has multiple armor items. Prioritize armor penetration." if is_en else "El equipo rival ya acumula varios ítems de armadura. Priorizá penetración de armadura.",
             })
         if mr_items >= 3:
             alerts.append({
                 "id": "enemy_mr_stack",
                 "type": "tip",
-                "title": "Enemigo armando Resistencia Mágica",
-                "message": "El equipo rival está armando resistencia mágica. Considerá penetración mágica.",
+                "title": "Enemies stacking Magic Resist" if is_en else "Enemigo armando Resistencia Mágica",
+                "message": "Enemy team is stacking magic resist. Consider magic penetration." if is_en else "El equipo rival está armando resistencia mágica. Considerá penetración mágica.",
             })
 
         # 4. Recordatorio de oro en mano
@@ -227,8 +228,8 @@ class LiveGameMonitor:
             alerts.append({
                 "id": f"gold_recall_{int(game_time // 180)}",
                 "type": "tip",
-                "title": f"Tenés {current_gold} de oro sin gastar",
-                "message": f"Tenés {current_gold} de oro en mano. Buscá un buen timing de back para convertirlo en stats.",
+                "title": f"You have {current_gold} unspent gold" if is_en else f"Tenés {current_gold} de oro sin gastar",
+                "message": f"You are sitting on {current_gold} gold. Look for a clean recall timing to spend it." if is_en else f"Tenés {current_gold} de oro en mano. Buscá un buen timing de back para convertirlo en stats.",
             })
 
         return {
