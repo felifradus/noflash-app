@@ -866,14 +866,18 @@ class WarmupHub {
     });
 
     setInterval(() => {
-      if (this.idleShown) return;
       const curView = window.app?.state?.currentView;
-      if (curView === 'riftdle' || curView === 'draft' || curView === 'ingame') return;
+      const inGameOrDraft = !!(window.app?.liveInGameWasActive) || curView === 'ingame' || curView === 'draft';
+      if (inGameOrDraft) {
+        if (popup.style.display !== 'none') popup.style.display = 'none';
+        return;
+      }
+      if (this.idleShown || curView === 'riftdle') return;
       if (Date.now() - lastActivity >= 30000) {
         this.idleShown = true;
         popup.style.display = 'block';
       }
-    }, 5000);
+    }, 3000);
   }
 }
 
