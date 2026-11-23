@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiftMind — Live Voice LoL Coach | Zero Overwolf Bloat</title>
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #010a13;
+      --bg2: #091428;
+      --card: #0c1829;
+      --gold: #c89b3c;
+      --gold-l: #f6d365;
+      --cyan: #0ac8b9;
+      --text: #f0e6d2;
+      --muted: #9aa5b1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 20% 0%, #0d213d 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Nav */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 0; border-bottom: 1px solid rgba(200,155,60,0.2);
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand img {
+      width: 42px; height: 42px; border-radius: 10px;
+      border: 1.5px solid var(--gold); box-shadow: 0 0 16px rgba(200,155,60,0.35);
+    }
+    .brand h1 { font-family: 'Cinzel', serif; font-size: 1.35rem; color: var(--text); line-height: 1; }
+    .brand span { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.16em; color: var(--cyan); }
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .lang-btn {
+      background: rgba(12,24,41,0.9); border: 1px solid rgba(200,155,60,0.4);
+      color: var(--text); padding: 0.45rem 0.75rem; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* Hero */
+    .hero { text-align: center; padding: 5rem 0 3.5rem; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.9rem; border-radius: 999px;
+      background: rgba(10,200,185,0.14); border: 1px solid rgba(10,200,185,0.4);
+      color: #5eead4; font-size: 0.78rem; font-weight: 700; margin-bottom: 1.25rem;
+    }
+    .hero h2 {
+      font-family: 'Cinzel', serif; font-size: clamp(2.1rem, 5vw, 3.5rem);
+      line-height: 1.12; margin-bottom: 1.1rem;
+      background: linear-gradient(135deg, #fff5d6, var(--gold-l), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      max-width: 680px; margin: 0 auto 2rem; font-size: 1.08rem; color: var(--muted);
+    }
+    .cta-row { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.95rem 1.85rem; border-radius: 10px; font-weight: 800; font-size: 1rem;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold)); color: #010a13;
+      box-shadow: 0 0 28px rgba(200,155,60,0.4); transition: transform 0.2s ease;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.95rem 1.6rem; border-radius: 10px; font-weight: 700; font-size: 0.98rem;
+      background: rgba(12,24,41,0.9); border: 1px solid rgba(10,200,185,0.45); color: #e2f8f5;
+      transition: all 0.2s ease;
+    }
+    .btn-secondary:hover { border-color: var(--gold-l); color: #fff; }
+    .hero-meta { margin-top: 1.15rem; font-size: 0.8rem; color: var(--muted); }
+
+    /* Features */
+    .section { padding: 3.5rem 0; }
+    .section-title {
+      font-family: 'Cinzel', serif; font-size: 1.9rem; text-align: center;
+      margin-bottom: 2.2rem; color: var(--text);
+    }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; }
+    .feat-card {
+      background: var(--card); border: 1px solid rgba(200,155,60,0.24);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .feat-icon { font-size: 1.65rem; color: var(--gold-l); margin-bottom: 0.75rem; }
+    .feat-card h3 { font-size: 1.05rem; margin-bottom: 0.45rem; color: var(--text); }
+    .feat-card p { font-size: 0.88rem; color: var(--muted); }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem; max-width: 780px; margin: 0 auto;
+    }
+    .price-card {
+      background: var(--card); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .price-card.pro {
+      border: 1.5px solid var(--gold);
+      background: linear-gradient(155deg, rgba(200,155,60,0.12), var(--card) 55%);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    }
+    .price-tag { font-size: 2.2rem; font-weight: 800; color: var(--gold-l); }
+    .price-tag span { font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+    .price-list { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; font-size: 0.9rem; }
+    .price-list li i { color: var(--cyan); margin-right: 0.5rem; }
+
+    footer {
+      border-top: 1px solid rgba(200,155,60,0.2); padding: 2.2rem 0;
+      text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="brand">
+        <img src="logo.jpg" alt="RiftMind">
+        <div>
+          <h1>RiftMind</h1>
+          <span>LIVE LOL COACH</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="lang-btn" id="btn-lang">ES / EN</button>
+        <a href="#pricing" class="btn-secondary" style="padding:0.5rem 1rem;font-size:0.84rem;" data-k="nav_pro">Pro Plan</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-pill"><i class="fa-solid fa-bolt"></i> <span data-k="pill">Built by a Master player · Zero Overwolf Bloat</span></div>
+      <h2 data-k="h1">Your Live Voice Coach for Draft &amp; In-Game</h2>
+      <p data-k="sub">Stop letting heavy apps tank your FPS and recommend meta picks you never play. RiftMind analyzes your last 160 games, speaks live draft &amp; objective callouts, and imports runes in 1 click.</p>
+      <div class="cta-row">
+        <a href="#download" class="btn-primary" id="download"><i class="fa-brands fa-windows"></i> <span data-k="cta_dl">Download Free for Windows (.exe)</span></a>
+        <a href="https://discord.gg/" target="_blank" class="btn-secondary"><i class="fa-brands fa-discord"></i> <span data-k="cta_dc">Join Beta Discord</span></a>
+      </div>
+      <div class="hero-meta" data-k="meta">Windows 10 / 11 · 100% Riot API &amp; Vanguard Compliant · 9 Languages</div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title" data-k="feat_title">Why Players Switch to RiftMind</h2>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-microphone-lines"></i></div>
+          <h3 data-k="f1_t">Natural Neural Voice Coach</h3>
+          <p data-k="f1_p">Spoken bans, best picks, Cleanse/Exhaust alerts in Champ Select, plus Drake, Grubs, Baron, enemy level 6 &amp; jungle clear callouts in-game.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
+          <h3 data-k="f2_t">1-Click Runes &amp; Spells to LoL</h3>
+          <p data-k="f2_p">Automatically creates your optimal rune page and sets your Summoner Spells directly in the League Client — no Overwolf required.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3 data-k="f3_t">160-Game Deep Analysis (&lt;2s)</h3>
+          <p data-k="f3_p">Local SQLite cache loads 160 games in under 2 seconds. See your Nemesis, Free LP victim, CS@10, DPM, and per-champion improvement tags.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+          <h3 data-k="f4_t">Friendly Anti-Tilt &amp; Dodge Radar</h3>
+          <p data-k="f4_p">Live Draft Diff bar tells you when a draft is tough, and our tilt detector reminds you to take a quick break before losing -60 LP.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-user-secret"></i></div>
+          <h3 data-k="f5_t">Smurf Mode Built-In</h3>
+          <p data-k="f5_p">Playing on a smurf? Lock your main account profile so RiftMind reads the live draft from your smurf while recommending from your real pool.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-gamepad"></i></div>
+          <h3 data-k="f6_t">Queue Warm-Up Arcade</h3>
+          <p data-k="f6_p">Warm up mouse reflexes in a 20s Micro Aim arena, sharpen itemization in the Macro &amp; Builds Quiz, or play Riftdle while waiting in queue.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <h2 class="section-title" data-k="price_title">Simple, Fair Pricing</h2>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <h3 data-k="free_t">Free Beta</h3>
+          <div class="price-tag">$0 <span data-k="forever">/ forever</span></div>
+          <ul class="price-list">
+            <li><i class="fa-solid fa-check"></i> <span data-k="fr1">Live Draft Coach + Bans &amp; Picks</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="fr2">1-Click Runes &amp; Spells Import</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="fr3">In-Game Objective Timers &amp; Spell Tracker</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="fr4">Warm-Up Arcade (Riftdle, Micro, Quiz)</span></li>
+          </ul>
+          <a href="#download" class="btn-secondary" style="justify-content:center;margin-top:auto;" data-k="cta_free">Start Free</a>
+        </div>
+        <div class="price-card pro">
+          <h3>RiftMind Pro <span style="font-size:0.75rem;color:#0ac8b9;">· SOON</span></h3>
+          <div class="price-tag">$4.99 <span data-k="per_mo">/ month</span></div>
+          <ul class="price-list">
+            <li><i class="fa-solid fa-check"></i> <span data-k="pr1">160+ Games Deep Analysis &amp; Nemesis Radar</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="pr2">Premium Neural Voice Coach (9 Languages)</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="pr3">Unlimited Smurf Profiles &amp; Duo Synergy Mode</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="pr4">Zero Ads · Priority Patch Updates</span></li>
+          </ul>
+          <a href="#download" class="btn-primary" style="justify-content:center;margin-top:auto;" data-k="cta_pro">Get Beta Access Free</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>RiftMind is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends. League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.</p>
+    </footer>
+  </div>
+
+  <script>
+    const ES = {
+      nav_pro: 'Plan Pro',
+      pill: 'Creado por un jugador Master · Cero Overwolf',
+      h1: 'Tu Coach por Voz en Vivo para Draft y Partida',
+      sub: 'Dejá de usar apps pesadas que te bajan FPS y te recomiendan picks que nunca jugás. RiftMind analiza tus últimas 160 partidas, te habla por voz en draft e in-game e importa runas en 1 click.',
+      cta_dl: 'Descargar Gratis para Windows (.exe)',
+      cta_dc: 'Unirme al Discord Beta',
+      meta: 'Windows 10 / 11 · 100% Legal ante Riot y Vanguard · 9 Idiomas',
+      feat_title: 'Por qué los jugadores eligen RiftMind',
+      f1_t: 'Coach por Voz Neuronal',
+      f1_p: 'Te habla los bans, mejores picks y si conviene Limpiar/Extenuar en Draft, más avisos de Dragón, Grubs, Barón, nivel 6 enemigo y ventanas de gank.',
+      f2_t: 'Importar Runas y Hechizos al LoL',
+      f2_p: 'Crea automáticamente tu página de runas óptima y carga los 2 Hechizos de Invocador directo en tu cliente de LoL sin Overwolf.',
+      f3_t: 'Análisis de 160 Partidas (<2s)',
+      f3_p: 'Caché local SQLite: carga 160 partidas en menos de 2 segundos. Descubrí tu Némesis, tu Víctima Favorita, CS@10, DPM y áreas de mejora.',
+      f4_t: 'Anti-Tilt Amigable y Semáforo de Dodge',
+      f4_p: 'Medidor de Draft Diff en vivo y detector de racha negativa que te avisa cuándo hacer un break de 15 min antes de regalar -60 LP.',
+      f5_t: 'Modo Smurf Integrado',
+      f5_p: '¿Jugando en smurf? Bloqueá tu cuenta principal para que RiftMind lea el draft desde la smurf pero recomiende con tu pool real.',
+      f6_t: 'Zona Warm-Up para la Cola',
+      f6_p: 'Calentá reflejos en una arena de Micro (20s), practicá builds en el Quiz de Macro o jugá Riftdle mientras esperás cola.',
+      price_title: 'Precios Simples y Justos',
+      free_t: 'Beta Gratis', forever: '/ para siempre', per_mo: '/ mes',
+      fr1: 'Coach de Draft en Vivo + Bans y Picks', fr2: 'Importar Runas y Hechizos al LoL',
+      fr3: 'Timers de Objetivos y Hechizos Enemigos', fr4: 'Zona Warm-Up (Riftdle, Micro, Quiz)',
+      pr1: 'Análisis Profundo (160+ partidas) y Némesis', pr2: 'Coach por Voz Neuronal Premium (9 idiomas)',
+      pr3: 'Cuentas Smurf ilimitadas y Modo Duo', pr4: 'Cero anuncios · Updates prioritarios',
+      cta_free: 'Empezar Gratis', cta_pro: 'Probar Beta Gratis',
+    };
+    const EN = {};
+    document.querySelectorAll('[data-k]').forEach(el => { EN[el.dataset.k] = el.textContent; });
+    let cur = 'en';
+    document.getElementById('btn-lang').addEventListener('click', () => {
+      cur = cur === 'en' ? 'es' : 'en';
+      const dict = cur === 'es' ? ES : EN;
+      document.querySelectorAll('[data-k]').forEach(el => {
+        if (dict[el.dataset.k]) el.textContent = dict[el.dataset.k];
+      });
+    });
+  </script>
+</body>
+</html>

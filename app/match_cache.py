@@ -5,12 +5,22 @@ pedirla a Riot API, logrando cargas casi instantáneas (<1s) y respetando rate l
 """
 
 import json
+import os
 import sqlite3
+import sys
 import zlib
 from pathlib import Path
 from typing import Any, Optional
 
-DB_PATH = Path(__file__).resolve().parent / "data" / "match_cache.db"
+
+def _default_db_path() -> Path:
+    if getattr(sys, "frozen", False):
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "RiftMind"
+        return base / "match_cache.db"
+    return Path(__file__).resolve().parent / "data" / "match_cache.db"
+
+
+DB_PATH = _default_db_path()
 
 
 class MatchCache:

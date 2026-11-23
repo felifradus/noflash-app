@@ -27,9 +27,15 @@ LR_LOADFROMFILE = 0x0010
 WINDOW_TITLE = "RiftMind — Live LoL Coach"
 
 
+def _resource_dir() -> Path:
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
+    return Path(__file__).resolve().parent
+
+
 def _apply_native_windows_theme() -> None:
     """Aplica barra de título oscura de Windows 10/11 e ícono Hextech a la ventana."""
-    icon_path = str(Path(__file__).resolve().parent / "static" / "app.ico")
+    icon_path = str(_resource_dir() / "static" / "app.ico")
     user32 = ctypes.windll.user32
     dwmapi = ctypes.windll.dwmapi
 
@@ -126,14 +132,10 @@ def _start_backend(host: str, port: int) -> None:
         return  # Ya está corriendo en segundo plano
 
     import uvicorn
-
-    # Asegurar que el directorio del proyecto esté en sys.path
-    project_dir = str(Path(__file__).resolve().parent)
-    if project_dir not in sys.path:
-        sys.path.insert(0, project_dir)
+    from app.main import app as fastapi_app
 
     uvicorn.run(
-        "app.main:app",
+        fastapi_app,
         host=host,
         port=port,
         reload=False,

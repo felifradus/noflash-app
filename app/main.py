@@ -6,9 +6,11 @@ Sirve la interfaz web y expone los endpoints de análisis y draft.
 import asyncio
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any, Optional
 
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
@@ -46,8 +48,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Resolver directorio base (compatible con ejecución normal y PyInstaller .exe)
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
 # Montar archivos estáticos
-static_dir = Path(__file__).resolve().parent.parent / "static"
+static_dir = BASE_DIR / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
@@ -87,17 +95,23 @@ match_cache = MatchCache()
 
 def _get_api_key() -> str | None:
     """Obtiene la API key de las variables de entorno o del archivo .env."""
-    env_path = Path(__file__).resolve().parent.parent / ".env"
-    if env_path.exists():
-        try:
-            from dotenv import load_dotenv
-            load_dotenv(env_path, override=True)
-        except ImportError:
-            pass
+    for candidate in (BASE_DIR / ".env", Path.cwd() / ".env"):
+        if candidate.exists():
+            try:
+                from dotenv import load_dotenv
+                load_dotenv(candidate, override=True)
+            except ImportError:
+                pass
     key = os.environ.get("RIOT_API_KEY", "").strip()
     if not key or key == "tu-api-key-aqui":
         return None
     return key
+
+
+def _get_cloud_url() -> str | None:
+    """URL opcional del servidor central de RiftMind en la nube (para usuarios sin API key)."""
+    url = os.environ.get("RIFTMIND_CLOUD_URL", "").strip().rstrip("/")
+    return url or None
 
 
 # ── Endpoints ──────────────────────────────────────────────────────
@@ -150,14 +164,34 @@ async def analyze_player(request: AnalyzeRequest) -> dict[str, Any]:
     maestrías y ranked, y retorna el análisis completo.
     """
     api_key = _get_api_key()
+    cloud_url = _get_cloud_url()
+
+    # Modo híbrido para usuarios finales: si no hay API key local pero sí servidor cloud, delegamos el análisis
+    if not api_key and cloud_url:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as proxy:
+                resp = await proxy.post(
+                    f"{cloud_url}/api/analyze",
+                    json=request.model_dump(),
+                )
+                if resp.status_code == 200:
+                    return resp.json()
+                detail = resp.json().get("detail", "Error del servidor RiftMind Cloud.")
+                raise HTTPException(status_code=resp.status_code, detail=detail)
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=503,
+                detail=f"No se pudo conectar con RiftMind Cloud ({cloud_url}): {e}",
+            )
+
     if not api_key:
         raise HTTPException(
             status_code=503,
             detail=(
                 "No se configuró la API Key de Riot Games. "
-                "Configurá la variable de entorno RIOT_API_KEY o "
-                "creá un archivo .env con RIOT_API_KEY=tu-clave. "
-                "Podés obtener una en https://developer.riotgames.com/"
+                "Configurá RIOT_API_KEY en .env o RIFTMIND_CLOUD_URL para usar el servidor en la nube."
             ),
         )
 
