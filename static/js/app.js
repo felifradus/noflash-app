@@ -619,6 +619,7 @@ class DraftAnalyzer {
 
     // Render Pulso de Sesión (Anti-Tilt) + Errores recientes
     this.renderPlayerVibeAndTrophies(data, globalWr, totalAnalyzed);
+    this.renderGpiAndPoroTags(data, globalWr, totalAnalyzed);
 
     const mc = analysis.mental_check;
     const mentalSection = document.getElementById('mental-section');
@@ -917,6 +918,117 @@ class DraftAnalyzer {
       .map(tr => `<span class="trophy-badge ${tr.cls}">${tr.text}</span>`)
       .join('');
     bar.style.display = 'flex';
+  }
+
+  /* ── Mobalytics-style 5-Pillar GPI Radar + Porofessor-style Player Tags ── */
+  renderGpiAndPoroTags(data, globalWr, totalAnalyzed) {
+    const sec = document.getElementById('gpi-poro-section');
+    const radarWrap = document.getElementById('gpi-radar-wrap');
+    const listWrap = document.getElementById('gpi-pillars-list');
+    const gradeEl = document.getElementById('gpi-overall-grade');
+    const tagsEl = document.getElementById('poro-tags-grid');
+    if (!sec || !radarWrap || !listWrap || !tagsEl) return;
+
+    const analysis = data.analysis || data;
+    const champStats = Object.values(analysis.champion_stats || {});
+    if (champStats.length === 0) {
+      sec.style.display = 'none';
+      return;
+    }
+
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+    const totalG = champStats.reduce((a, c) => a + (c.games || 0), 0) || 1;
+    const wAvg = (fn) => champStats.reduce((a, c) => a + (fn(c) || 0) * (c.games || 0), 0) / totalG;
+
+    const avgCs = wAvg(c => Number(c.avg_cs_per_min || 0));
+    const avgDeaths = wAvg(c => Number(c.avg_deaths || 5.5));
+    const avgKda = wAvg(c => Number(c.avg_kda || 2.5));
+    const avgDmgShare = wAvg(c => Number(c.avg_damage_share || 20));
+    const avgKp = wAvg(c => Number((c.deep_analysis?.metrics?.avg_kp) || 52));
+    const avgTurrets = wAvg(c => Number((c.deep_analysis?.metrics?.avg_turrets) || 1.2));
+    const wrNum = parseFloat(globalWr) || 50;
+
+    const clamp = (v) => Math.max(22, Math.min(99, Math.round(v)));
+    const pillars = [
+      { key: isEn ? 'Fighting' : 'Peleas', val: clamp(40 + avgKda * 11 + (avgDmgShare - 18) * 1.4) },
+      { key: isEn ? 'Farming' : 'Farmeo', val: clamp((avgCs / 8.5) * 95) },
+      { key: isEn ? 'Survivability' : 'Supervivencia', val: clamp(102 - avgDeaths * 8.5) },
+      { key: isEn ? 'Objectives' : 'Objetivos', val: clamp(42 + avgTurrets * 22 + (avgKp - 45) * 0.6) },
+      { key: isEn ? 'Consistency' : 'Consistencia', val: clamp(45 + (wrNum - 45) * 3.2 + Math.min(12, totalAnalyzed / 15)) },
+    ];
+
+    const overall = Math.round(pillars.reduce((a, p) => a + p.val, 0) / pillars.length);
+    const toGrade = (v) => v >= 90 ? 'S+' : v >= 82 ? 'S' : v >= 74 ? 'A+' : v >= 66 ? 'A' : v >= 56 ? 'B' : 'C';
+    if (gradeEl) gradeEl.textContent = toGrade(overall);
+
+    // Construir SVG Pentagon Radar ligero y nítido
+    const cx = 110, cy = 105, maxR = 72;
+    const ptsFor = (scaleArr) => scaleArr.map((v, i) => {
+      const ang = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      const r = (v / 100) * maxR;
+      return `${(cx + Math.cos(ang) * r).toFixed(1)},${(cy + Math.sin(ang) * r).toFixed(1)}`;
+    }).join(' ');
+
+    const gridRings = [25, 50, 75, 100].map(r =>
+      `<polygon points="${ptsFor([r, r, r, r, r])}" fill="none" stroke="rgba(200,155,60,0.2)" stroke-width="1"/>`
+    ).join('');
+    const axes = pillars.map((p, i) => {
+      const ang = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      const x2 = cx + Math.cos(ang) * maxR;
+      const y2 = cy + Math.sin(ang) * maxR;
+      const lx = cx + Math.cos(ang) * (maxR + 18);
+      const ly = cy + Math.sin(ang) * (maxR + 14);
+      return `
+        <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(200,155,60,0.22)" stroke-width="1"/>
+        <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#cbd5e1" font-size="9.5" font-weight="700" text-anchor="middle">${p.key}</text>
+      `;
+    }).join('');
+
+    radarWrap.innerHTML = `
+      <svg viewBox="0 0 220 210" class="gpi-svg">
+        ${gridRings}
+        ${axes}
+        <polygon points="${ptsFor(pillars.map(p => p.val))}" fill="rgba(10, 200, 185, 0.28)" stroke="#0ac8b9" stroke-width="2.2"/>
+      </svg>
+    `;
+
+    listWrap.innerHTML = pillars.map(p => `
+      <div class="gpi-pillar-row">
+        <span class="gpi-p-name">${p.key}</span>
+        <div class="gpi-p-bar"><div class="gpi-p-fill" style="width:${p.val}%"></div></div>
+        <span class="gpi-p-grade">${toGrade(p.val)}</span>
+      </div>
+    `).join('');
+
+    // Porofessor-style Green / Gold / Red Player Tags
+    const pTags = [];
+    if (avgCs >= 6.8) pTags.push({ cls: 'good', title: isEn ? 'High CS' : 'Alto Farmeo', sub: `${avgCs.toFixed(1)} CS/min` });
+    else if (avgCs > 0 && avgCs < 5.0) pTags.push({ cls: 'bad', title: isEn ? 'Low CS/min' : 'Farmeo Bajo', sub: `${avgCs.toFixed(1)} CS/min` });
+
+    if (avgDmgShare >= 24) pTags.push({ cls: 'good', title: isEn ? 'Damage Carry' : 'Carry de Daño', sub: `${Math.round(avgDmgShare)}% team DMG` });
+    if (avgTurrets >= 1.8) pTags.push({ cls: 'good', title: isEn ? 'Tower Crusher' : 'Destructor de Torres', sub: `${avgTurrets.toFixed(1)} / game` });
+    if (avgDeaths <= 4.5) pTags.push({ cls: 'good', title: isEn ? 'Unkillable' : 'Difícil de Matar', sub: `${avgDeaths.toFixed(1)} deaths/g` });
+    else if (avgDeaths >= 6.5) pTags.push({ cls: 'bad', title: isEn ? 'Vulnerable to Ganks' : 'Muertes Altas', sub: `${avgDeaths.toFixed(1)} deaths/g` });
+
+    if (avgKp >= 56) pTags.push({ cls: 'good', title: isEn ? 'Teamfighter' : 'Alta Participación', sub: `${Math.round(avgKp)}% KP` });
+    if (wrNum >= 54) pTags.push({ cls: 'gold', title: isEn ? 'Consistent Climber' : 'Escalador Constante', sub: `${wrNum.toFixed(1)}% WR` });
+
+    const topChamp = (analysis.best_champions || [])[0];
+    if (topChamp && (topChamp.games || 0) >= 25) {
+      pTags.push({ cls: 'gold', title: `${displayName(topChamp.champion || topChamp.champion_name)} Main`, sub: `${topChamp.games} games` });
+    }
+    if (pTags.length < 3) {
+      pTags.push({ cls: 'gold', title: isEn ? 'Adaptive Pool' : 'Pool Flexible', sub: `${champStats.length} champs` });
+    }
+
+    tagsEl.innerHTML = pTags.slice(0, 6).map(tg => `
+      <div class="poro-tag ${tg.cls}">
+        <strong>${tg.title}</strong>
+        <span>${tg.sub}</span>
+      </div>
+    `).join('');
+
+    sec.style.display = 'grid';
   }
 
   /* ── Modal de Análisis Profundo por Campeón ── */
@@ -1775,9 +1887,10 @@ class DraftAnalyzer {
           });
         }
 
-        // Render enemigos + botones de cooldown manual
+        // Render enemigos + botones de cooldown manual + Live Counter-Build Cheat Sheet
         const enemies = state.enemies || [];
         const enemiesKey = JSON.stringify(enemies.map(e => `${e.champion}_${e.level}`));
+        if (enemies.length > 0) this.renderLiveCounterBuild(enemies);
         if (this.igEnemiesEl && enemiesKey !== this.lastLiveEnemiesKey) {
           this.lastLiveEnemiesKey = enemiesKey;
           this.igEnemiesEl.innerHTML = enemies.map(e => {
@@ -1987,6 +2100,68 @@ class DraftAnalyzer {
         }
       }
     }, 5000);
+  }
+
+  /* ── U.GG / Blitz-style Live Counter-Build & Boots Cheat Sheet ── */
+  renderLiveCounterBuild(enemies) {
+    const card = document.getElementById('ig-build-card');
+    const grid = document.getElementById('ig-build-grid');
+    if (!card || !grid || !enemies || enemies.length === 0) return;
+
+    const norms = enemies.map(e => normalizeChampionId(e.champion).toLowerCase());
+    const key = norms.join(',');
+    if (this._lastBuildKey === key) return;
+    this._lastBuildKey = key;
+
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+    const itemUrl = (id) => `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/item/${id}.png`;
+
+    const HEALERS = new Set(['soraka','aatrox','vladimir','sylas','warwick','briar','drmundo','swain','yuumi','sona','nami','fiora','irelia','olaf','redkayn','kayn','zac']);
+    const TANKS = new Set(['malphite','ornn','sejuani','rammus','sion','nautilus','leona','braum','alistar','zac','maokai','ksante','tahmkench','drmundo','chogath','amumu','rell','skarner','poppy','shen']);
+    const ASSASSINS = new Set(['zed','fizz','talon','rengar','khazix','evelynn','diana','akali','katarina','nocturne','vi','qiyana','naafiri','ekko','shaco','bluekayn','kayn']);
+    const HARD_CC = new Set(['malzahar','mordekaiser','ashe','leona','nautilus','lissandra','amumu','skarner','morgana','thresh','sejuani','annie','twistedfate','warwick','vi']);
+    const AP_CHAMPS = new Set(['ahri','lux','syndra','orianna','viktor','vladimir','diana','fizz','akali','katarina','evelynn','brand','zyra','xerath','velkoz','hwei','cassiopeia','ryze','anivia','veigar','malzahar','swain','karthus','taliyah','aurora','mel']);
+
+    const healCnt = norms.filter(c => HEALERS.has(c)).length;
+    const tankCnt = norms.filter(c => TANKS.has(c)).length;
+    const assCnt = norms.filter(c => ASSASSINS.has(c)).length;
+    const ccCnt = norms.filter(c => HARD_CC.has(c)).length;
+    const apCnt = norms.filter(c => AP_CHAMPS.has(c)).length;
+
+    const recs = [];
+    // 1. Botas recomendadas
+    if (ccCnt >= 2 || apCnt >= 3) {
+      recs.push({ id: 3111, name: "Mercury's Treads", reason: isEn ? `Heavy CC/AP (${ccCnt} CC, ${apCnt} AP)` : `Mucho CC/AP rival` });
+    } else if (apCnt <= 1) {
+      recs.push({ id: 3047, name: 'Plated Steelcaps', reason: isEn ? 'Heavy AD enemy team' : 'Equipo rival muy AD' });
+    } else {
+      recs.push({ id: 3006, name: 'Offensive Boots', reason: isEn ? 'Balanced enemy damage' : 'Daño rival mixto' });
+    }
+
+    // 2. Situacionales clave
+    if (healCnt >= 2) {
+      recs.push({ id: 3123, name: isEn ? 'Anti-Heal (800g)' : 'Cortacuras (800g)', reason: isEn ? `${healCnt} enemy healers — buy early!` : `${healCnt} curadores rivales` });
+    }
+    if (tankCnt >= 2) {
+      recs.push({ id: 3036, name: isEn ? '% Armor / Magic Pen' : 'Penetración %', reason: isEn ? `${tankCnt} frontline tanks` : `${tankCnt} tanques rivales` });
+    }
+    if (assCnt >= 2) {
+      recs.push({ id: 3157, name: "Zhonya's / GA", reason: isEn ? `${assCnt} assassins/divers` : `${assCnt} asesinos rivales` });
+    }
+    if (ccCnt >= 2) {
+      recs.push({ id: 3140, name: 'Quicksilver Sash', reason: isEn ? 'Key cleanse vs lockdown CC' : 'Clave contra CC fuerte' });
+    }
+
+    grid.innerHTML = recs.slice(0, 4).map(r => `
+      <div class="ig-build-chip">
+        <img src="${itemUrl(r.id)}" alt="${r.name}">
+        <div>
+          <strong>${r.name}</strong>
+          <span>${r.reason}</span>
+        </div>
+      </div>
+    `).join('');
+    card.style.display = 'block';
   }
 
   /* ── Scouting en vivo de los 10 jugadores (Aliados + Rivales) ── */

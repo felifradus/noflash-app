@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=34">
+  <link rel="stylesheet" href="/static/css/style.css?v=35">
 </head>
 <body>
 
@@ -237,6 +237,24 @@
         <div class="mistakes-card">
           <div class="mistakes-title"><i class="fa-solid fa-magnifying-glass-chart"></i> <span data-i18n="mistakes_title">Puntos a mejorar de tus últimas partidas</span></div>
           <div id="mistakes-list" class="mistakes-list"></div>
+        </div>
+      </div>
+
+      <!-- Mobalytics-style GPI Playstyle Radar + Porofessor-style Player Tags -->
+      <div class="gpi-poro-section" id="gpi-poro-section" style="display:none;">
+        <div class="gpi-card">
+          <div class="gpi-card-head">
+            <h3 class="section-title" style="margin:0;"><i class="fa-solid fa-hexagon-nodes"></i> Playstyle Radar (GPI)</h3>
+            <span class="gpi-overall-grade" id="gpi-overall-grade">A+</span>
+          </div>
+          <div class="gpi-body">
+            <div class="gpi-radar-wrap" id="gpi-radar-wrap"></div>
+            <div class="gpi-pillars-list" id="gpi-pillars-list"></div>
+          </div>
+        </div>
+        <div class="poro-tags-card">
+          <h3 class="section-title" style="margin-bottom:0.75rem;"><i class="fa-solid fa-tags"></i> Player Tags &amp; Habits</h3>
+          <div class="poro-tags-grid" id="poro-tags-grid"></div>
         </div>
       </div>
 
@@ -468,6 +486,12 @@
             <p class="coach-muted" style="margin-bottom:0.75rem;" data-i18n="ig_spells_hint">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
             <div id="ig-enemies-list" class="ig-enemies-list"></div>
           </div>
+        </div>
+
+        <!-- U.GG / Blitz-style Live Counter-Item & Boots Cheat Sheet -->
+        <div class="ingame-card ig-build-card" id="ig-build-card" style="margin-top:1.1rem;display:none;">
+          <h3 class="section-title" style="margin-bottom:0.65rem;"><i class="fa-solid fa-shield-halved"></i> Live Counter-Build &amp; Boots vs This Comp</h3>
+          <div class="ig-build-grid" id="ig-build-grid"></div>
         </div>
 
         <!-- Scouting en vivo de los 10 jugadores (Aliados vs Rivales) -->
@@ -764,6 +788,6 @@
   <script src="/static/js/voice.js?v=34"></script>
   <script src="/static/js/riftdle.js?v=32"></script>
   <script src="/static/js/dodge_arena.js?v=4"></script>
-  <script src="/static/js/app.js?v=35"></script>
+  <script src="/static/js/app.js?v=36"></script>
 </body>
 </html>
