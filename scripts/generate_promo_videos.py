@@ -430,8 +430,8 @@ def main():
         ),
     ]
 
-    for args in videos:
-        render_video(*args)
+    for out_mp4, script_text, voice, splash_img, captions, scene_drawer in videos:
+        render_video(out_mp4, script_text, voice, splash_img, assets, captions, scene_drawer)
 
 
 if __name__ == "__main__":
