@@ -15,13 +15,62 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=31">
+  <link rel="stylesheet" href="/static/css/style.css?v=32">
 </head>
 <body>
 
-  <!-- ═══════════════ HEADER / NAV ═══════════════ -->
+  <!-- ═══════════════ CUSTOM HEXTECH GAMER TITLEBAR (FRAMELESS DESKTOP) ═══════════════ -->
+  <div class="hextech-titlebar pywebview-drag-region" id="hextech-titlebar">
+    <div class="titlebar-left pywebview-drag-region">
+      <img src="/static/logo.jpg" alt="NoFlash" class="tb-mini-logo">
+      <span class="tb-app-name">NOFLASH</span>
+      <span class="tb-sep">·</span>
+      <button class="lcu-pill tb-lcu-pill" id="lcu-status-pill" title="League Client connection status">
+        <span class="lcu-dot"></span>
+        <span id="lcu-status-text" data-i18n="lcu_not_found">LoL: Not detected</span>
+      </button>
+    </div>
+
+    <div class="titlebar-right">
+      <button class="btn-otra-cuenta tb-compact-btn" id="btn-header-switch" title="Switch account (e.g. Main while playing Smurf)">
+        <i class="fa-solid fa-repeat"></i>
+        <span data-i18n="btn_other_account">Switch account</span>
+      </button>
+      <select class="lang-select tb-lang" id="lang-select" title="Language / Idioma">
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+        <option value="pt">PT</option>
+        <option value="ko">KO</option>
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+        <option value="zh">ZH</option>
+        <option value="ja">JA</option>
+        <option value="tr">TR</option>
+      </select>
+      <button class="tb-util-btn voice-pill" id="btn-voice-toggle" title="Toggle Voice Coach">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button class="tb-util-btn" id="btn-reload-app" onclick="window.location.reload()" title="Reload UI">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+      <button class="tb-util-btn" id="btn-auto-lol" style="display:none;" title="Auto-open NoFlash when LoL starts">
+        <i class="fa-solid fa-rocket"></i>
+      </button>
+      <button class="tb-util-btn" id="btn-pin-window" style="display:none;" title="Always on Top">
+        <i class="fa-solid fa-thumbtack"></i>
+      </button>
+
+      <!-- Custom Gamer Window Controls (only shown in Desktop App) -->
+      <div class="win-controls" id="win-controls" style="display:none;">
+        <button class="win-btn win-min" id="btn-win-min" title="Minimize"><i class="fa-solid fa-minus"></i></button>
+        <button class="win-btn win-max" id="btn-win-max" title="Maximize / Restore"><i class="fa-regular fa-square"></i></button>
+        <button class="win-btn win-close" id="btn-win-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ HEADER / NAV (CLEAN SINGLE ROW AT ANY WIDTH) ═══════════════ -->
   <header class="app-header clean-header">
-    <!-- ZONA IZQUIERDA: Logo + Pestañas principales -->
     <div class="header-left">
       <div class="header-brand">
         <img src="/static/logo.jpg" alt="NoFlash" class="brand-logo-img">
@@ -35,56 +84,21 @@
 
       <nav class="header-nav main-tabs">
         <button class="nav-tab active" data-view="search">
-          <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="nav_search">Búsqueda</span>
+          <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="nav_search">Search</span>
         </button>
         <button class="nav-tab" data-view="analysis" id="nav-analysis" disabled>
-          <i class="fa-solid fa-chart-line"></i> <span data-i18n="nav_analysis">Análisis</span>
+          <i class="fa-solid fa-chart-line"></i> <span data-i18n="nav_analysis">Analysis</span>
         </button>
         <button class="nav-tab" data-view="draft" id="nav-draft" disabled>
           <i class="fa-solid fa-chess"></i> <span data-i18n="nav_draft">Draft</span>
         </button>
         <button class="nav-tab" data-view="ingame" id="nav-ingame">
-          <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">En Partida</span>
+          <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">In-Game</span>
         </button>
         <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Dodge Arena & Flashdle">
           <i class="fa-solid fa-gamepad"></i> <span data-i18n="nav_warmup">Warm-Up</span> <span class="new-feature-badge">NEW</span>
         </button>
       </nav>
-    </div>
-
-    <!-- ZONA DERECHA: Controles y Estado -->
-    <div class="header-right">
-      <button class="btn-otra-cuenta" id="btn-header-switch" title="Analizar otra cuenta (ej: tu main mientras jugás en smurf)">
-        <i class="fa-solid fa-repeat"></i>
-        <span data-i18n="btn_other_account">Otra cuenta</span>
-      </button>
-      <button class="lcu-pill" id="lcu-status-pill" title="Estado de conexión con el cliente de League of Legends">
-        <span class="lcu-dot"></span>
-        <span id="lcu-status-text" data-i18n="lcu_not_found">LoL: Sin detectar</span>
-      </button>
-      <select class="lang-select" id="lang-select" title="Language / Idioma">
-        <option value="en">EN</option>
-        <option value="es">ES</option>
-        <option value="pt">PT</option>
-        <option value="ko">KO</option>
-        <option value="fr">FR</option>
-        <option value="de">DE</option>
-        <option value="zh">ZH</option>
-        <option value="ja">JA</option>
-        <option value="tr">TR</option>
-      </select>
-      <button class="lcu-pill icon-only voice-pill" id="btn-voice-toggle" title="Activar o silenciar Coach por Voz">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-      <button class="lcu-pill icon-only" id="btn-reload-app" onclick="window.location.reload()" title="Recargar interfaz">
-        <i class="fa-solid fa-rotate-right"></i>
-      </button>
-      <button class="lcu-pill icon-only" id="btn-auto-lol" style="display:none;" title="Abrir NoFlash automáticamente al iniciar LoL / Auto-open with LoL">
-        <i class="fa-solid fa-rocket"></i>
-      </button>
-      <button class="lcu-pill icon-only" id="btn-pin-window" style="display:none;" title="Mantener ventana siempre encima del cliente de LoL">
-        <i class="fa-solid fa-thumbtack"></i>
-      </button>
     </div>
   </header>
 
@@ -717,6 +731,6 @@
   <script src="/static/js/voice.js?v=33"></script>
   <script src="/static/js/riftdle.js?v=32"></script>
   <script src="/static/js/dodge_arena.js?v=1"></script>
-  <script src="/static/js/app.js?v=34"></script>
+  <script src="/static/js/app.js?v=35"></script>
 </body>
 </html>

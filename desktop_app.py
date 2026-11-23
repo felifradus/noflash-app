@@ -33,6 +33,10 @@ LR_LOADFROMFILE = 0x0010
 WINDOW_TITLE = "NoFlash — Live LoL Coach"
 RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
 RUN_REG_NAME = "NoFlashAutoLaunch"
+SW_MINIMIZE = 6
+SW_MAXIMIZE = 3
+SW_RESTORE = 9
+WM_CLOSE = 0x0010
 CREATE_NO_WINDOW = 0x08000000
 DETACHED_PROCESS = 0x00000008
 
@@ -250,6 +254,34 @@ class DesktopAPI:
         threading.Thread(target=_apply, daemon=True).start()
         return self._on_top
 
+    def win_minimize(self) -> None:
+        """Minimiza la ventana nativa sin bloquear WebView2."""
+        def _do() -> None:
+            hwnd = ctypes.windll.user32.FindWindowW(None, WINDOW_TITLE)
+            if hwnd:
+                ctypes.windll.user32.ShowWindow(hwnd, SW_MINIMIZE)
+        threading.Thread(target=_do, daemon=True).start()
+
+    def win_toggle_maximize(self) -> bool:
+        """Alterna Maximizar / Restaurar la ventana nativa."""
+        self._maximized = not getattr(self, "_maximized", False)
+        target_max = self._maximized
+
+        def _do() -> None:
+            hwnd = ctypes.windll.user32.FindWindowW(None, WINDOW_TITLE)
+            if hwnd:
+                ctypes.windll.user32.ShowWindow(hwnd, SW_MAXIMIZE if target_max else SW_RESTORE)
+        threading.Thread(target=_do, daemon=True).start()
+        return target_max
+
+    def win_close(self) -> None:
+        """Cierra la ventana nativa limpiamente."""
+        def _do() -> None:
+            hwnd = ctypes.windll.user32.FindWindowW(None, WINDOW_TITLE)
+            if hwnd:
+                ctypes.windll.user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+        threading.Thread(target=_do, daemon=True).start()
+
 
 def _is_port_in_use(host: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -300,7 +332,7 @@ def main() -> None:
             break
         time.sleep(0.2)
 
-    # 2. Crear ventana nativa de escritorio
+    # 2. Crear ventana nativa frameless (barra Hextech gamer propia)
     api = DesktopAPI()
     window = webview.create_window(
         title=WINDOW_TITLE,
@@ -308,9 +340,11 @@ def main() -> None:
         js_api=api,
         width=1220,
         height=820,
-        min_size=(900, 620),
-        background_color="#0a0a1a",
+        min_size=(840, 600),
+        background_color="#010a13",
         resizable=True,
+        frameless=True,
+        easy_drag=False,
     )
     api.set_window(window)
 

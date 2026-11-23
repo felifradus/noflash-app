@@ -2113,6 +2113,14 @@ class DraftAnalyzer {
         });
       }
 
+      const winControls = document.getElementById('win-controls');
+      if (winControls && typeof window.pywebview.api.win_close === 'function') {
+        winControls.style.display = 'flex';
+        document.getElementById('btn-win-min')?.addEventListener('click', () => window.pywebview.api.win_minimize());
+        document.getElementById('btn-win-max')?.addEventListener('click', () => window.pywebview.api.win_toggle_maximize());
+        document.getElementById('btn-win-close')?.addEventListener('click', () => window.pywebview.api.win_close());
+      }
+
       const btnAutoLol = document.getElementById('btn-auto-lol');
       if (btnAutoLol && typeof window.pywebview.api.get_auto_launch === 'function') {
         btnAutoLol.style.display = 'inline-flex';
