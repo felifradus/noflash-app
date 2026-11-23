@@ -58,6 +58,11 @@ def main() -> None:
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
         print(f"OK! Generado: {exe_path} ({size_mb:.1f} MB)")
+        desktop_exe = Path.home() / "Desktop" / "NoFlash.exe"
+        if desktop_exe.exists():
+            import shutil
+            shutil.copy2(exe_path, desktop_exe)
+            print(f"OK! Actualizado también en Escritorio: {desktop_exe}")
 
 
 if __name__ == "__main__":

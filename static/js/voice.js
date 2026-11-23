@@ -101,24 +101,25 @@ class VoiceCoach {
     this.lastSpokenAt = now;
 
     this.stop();
+    this._reqId = (this._reqId || 0) + 1;
+    const myReqId = this._reqId;
 
     const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'en';
     const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(lang)}&persona=${encodeURIComponent(this.persona)}`;
 
     try {
-      const audio = new Audio(url);
+      const res = await fetch(url);
+      if (!res.ok || myReqId !== this._reqId) return;
+      const blob = await res.blob();
+      if (myReqId !== this._reqId) return;
+      const objUrl = URL.createObjectURL(blob);
+      const audio = new Audio(objUrl);
       audio.volume = this.volume;
+      audio.onended = () => URL.revokeObjectURL(objUrl);
       this.currentAudio = audio;
       await audio.play();
     } catch (err) {
-      // Fallback a speechSynthesis si no hay conexión
-      if ('speechSynthesis' in window) {
-        try {
-          const utter = new SpeechSynthesisUtterance(text);
-          utter.lang = lang === 'es' ? 'es-AR' : lang;
-          window.speechSynthesis.speak(utter);
-        } catch {}
-      }
+      // Silencioso: NUNCA usar speechSynthesis robótico de Windows
     }
   }
 
