@@ -60,23 +60,69 @@ function displayName(ddName) {
   return map[ddName] || ddName.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
+/* ── Normalización a ID oficial de Data Dragon (evita 404 -> Aatrox) ── */
+function normalizeChampionId(rawName) {
+  if (!rawName) return 'Aatrox';
+  const cleaned = String(rawName).trim();
+  const key = cleaned.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const special = {
+    wukong: 'MonkeyKing',
+    monkeyking: 'MonkeyKing',
+    jarvaniv: 'JarvanIV',
+    leesin: 'LeeSin',
+    masteryi: 'MasterYi',
+    missfortune: 'MissFortune',
+    twistedfate: 'TwistedFate',
+    aurelionsol: 'AurelionSol',
+    tahmkench: 'TahmKench',
+    xinzhao: 'XinZhao',
+    drmundo: 'DrMundo',
+    chogath: 'Chogath',
+    khazix: 'Khazix',
+    kogmaw: 'KogMaw',
+    reksai: 'RekSai',
+    velkoz: 'Velkoz',
+    belveth: 'Belveth',
+    kaisa: 'Kaisa',
+    ksante: 'KSante',
+    leblanc: 'Leblanc',
+    nunu: 'Nunu',
+    nunuwillump: 'Nunu',
+    renata: 'Renata',
+    renataglasc: 'Renata',
+    fiddlesticks: 'Fiddlesticks',
+  };
+  if (special[key]) return special[key];
+  // Quitar espacios, puntos y apóstrofes (ej: "Lee Sin" -> "LeeSin")
+  return cleaned.replace(/[\s'.&-]+/g, '');
+}
+
 /* ── Data Dragon URL ── */
 function champImgUrl(championName) {
-  const name = championName || 'Aatrox';
+  const name = normalizeChampionId(championName);
   return `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/${name}.png`;
 }
 
-function spellImgUrl(spellLabel) {
+function champSplashUrl(championName) {
+  const name = normalizeChampionId(championName);
+  return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${name}_0.jpg`;
+}
+
+function spellImgUrl(spellLabel, ddKey = '') {
+  if (ddKey && ddKey.startsWith('Summoner')) {
+    return `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/spell/${ddKey}.png`;
+  }
   const s = (spellLabel || '').toLowerCase();
   let key = 'SummonerFlash';
-  if (s.includes('barrera') || s.includes('barrier')) key = 'SummonerBarrier';
-  else if (s.includes('limpiar') || s.includes('cleanse')) key = 'SummonerBoost';
-  else if (s.includes('extenuar') || s.includes('exhaust')) key = 'SummonerExhaust';
-  else if (s.includes('prender') || s.includes('ignite')) key = 'SummonerDot';
-  else if (s.includes('teleport') || s.includes('(tp)')) key = 'SummonerTeleport';
-  else if (s.includes('fantasmal') || s.includes('ghost')) key = 'SummonerHaste';
-  else if (s.includes('aplastar') || s.includes('smite')) key = 'SummonerSmite';
-  else if (s.includes('curar') || s.includes('heal')) key = 'SummonerHeal';
+  if (s.includes('summonerbarrier') || s.includes('barrera') || s.includes('barrier') || s.includes('barreira')) key = 'SummonerBarrier';
+  else if (s.includes('summonerboost') || s.includes('limpiar') || s.includes('cleanse') || s.includes('purificar')) key = 'SummonerBoost';
+  else if (s.includes('summonerexhaust') || s.includes('extenua') || s.includes('exhaust') || s.includes('exaust')) key = 'SummonerExhaust';
+  else if (s.includes('summonerdot') || s.includes('prender') || s.includes('ignite') || s.includes('incendi')) key = 'SummonerDot';
+  else if (s.includes('summonerteleport') || s.includes('teletransport') || s.includes('teleport') || s.includes('(tp)')) key = 'SummonerTeleport';
+  else if (s.includes('summonerhaste') || s.includes('fantasmal') || s.includes('ghost')) key = 'SummonerHaste';
+  else if (s.includes('summonersmite') || s.includes('aplastar') || s.includes('smite') || s.includes('golpear')) key = 'SummonerSmite';
+  else if (s.includes('summonerheal') || s.includes('curaci') || s.includes('curar') || s.includes('heal')) key = 'SummonerHeal';
+  else if (s.includes('summonersnowball') || s.includes('mark') || s.includes('marca')) key = 'SummonerSnowball';
   return `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/spell/${key}.png`;
 }
 
@@ -1609,7 +1655,7 @@ class DraftAnalyzer {
               const tKey = `${e.champion}_${sIdx}`;
               return `
                 <button class="ig-spell-btn" data-tkey="${tKey}" data-champ="${e.champion}" data-spell="${sp.name}" data-cd="${sp.cooldown}" title="${sp.name} (${sp.cooldown}s) — Click al gastar">
-                  <img src="${spellImgUrl(sp.name)}" alt="${sp.name}">
+                  <img src="${spellImgUrl(sp.name, sp.dd_key)}" alt="${sp.name}">
                   <span class="ig-spell-cd-overlay" id="cd-${tKey}"></span>
                 </button>
               `;

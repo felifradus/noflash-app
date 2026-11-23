@@ -4,21 +4,29 @@
    ═══════════════════════════════════════════════════════ */
 
 const VOICE_PREVIEWS = {
+  announcer: {
+    en: 'Welcome to Summoner’s Rift. No Flash is online. Prepare your draft and claim victory.',
+    es: 'Bienvenido a la Grieta del Invocador. No Flash está activo. Prepará tu draft.',
+  },
+  caster: {
+    en: 'Draft phase is live! Lock in your best carry, control river vision, and snowball the Rift.',
+    es: 'Arranca el draft en vivo. Elegí tu mejor pick, controlá la visión y cerrá la partida.',
+  },
   pro_f: {
+    en: 'Hey, I am your No Flash Coach. Let us win this draft and track every objective.',
     es: 'Hola, soy tu Coach de No Flash. Vamos a ganar este draft y controlar cada objetivo.',
-    en: 'Hey, I am your No Flash Coach. Let us win this draft and control every objective.',
   },
   pro_m: {
-    es: 'Todo listo. Soy tu Coach de No Flash, te acompaño en el draft y en partida.',
     en: 'Ready to roll. I am your No Flash Coach, guiding your draft and live match.',
+    es: 'Todo listo. Soy tu Coach de No Flash, te acompaño en el draft y en partida.',
   },
 };
 
 class VoiceCoach {
   constructor() {
     this.enabled = localStorage.getItem('NoFlash_voice_enabled') !== 'false';
-    const saved = localStorage.getItem('NoFlash_voice_persona') || 'pro_f';
-    this.persona = VOICE_PREVIEWS[saved] ? saved : 'pro_f';
+    const saved = localStorage.getItem('NoFlash_voice_persona') || 'announcer';
+    this.persona = VOICE_PREVIEWS[saved] ? saved : 'announcer';
     this.spokenIds = new Set();
     this.lastSpokenText = '';
     this.lastSpokenAt = 0;

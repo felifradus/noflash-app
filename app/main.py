@@ -145,6 +145,28 @@ async def get_regions() -> dict[str, Any]:
     return {"regions": regions}
 
 
+_ENERGY_CHAMPS = {"akali", "kennen", "leesin", "shen", "zed", "ambessa"}
+_MANALESS_CHAMPS = {
+    "aatrox", "belveth", "briar", "drmundo", "garen", "gnar", "katarina",
+    "kled", "mordekaiser", "reksai", "renekton", "rengar", "riven", "rumble",
+    "sett", "shyvana", "tryndamere", "viego", "vladimir", "yasuo", "yone", "zac",
+}
+_RANGED_EXTRA = {
+    "ahri", "akshan", "anivia", "annie", "aphelios", "ashe", "aurelionsol",
+    "aurora", "azir", "bard", "brand", "caitlyn", "cassiopeia", "corki",
+    "draven", "elise", "ezreal", "fiddlesticks", "gnar", "graves", "heimerdinger",
+    "hwei", "ivern", "janna", "jayce", "jhin", "jinx", "kaisa", "kalista",
+    "karma", "karthus", "kayle", "kennen", "kindred", "kogmaw", "leblanc",
+    "lissandra", "lucian", "lulu", "lux", "malzahar", "mel", "milio",
+    "missfortune", "morgana", "nami", "neeko", "nidalee", "orianna", "quinn",
+    "renata", "ryze", "samira", "senna", "seraphine", "sivir", "smolder",
+    "sona", "soraka", "swain", "syndra", "taliyah", "teemo", "thresh",
+    "tristana", "twistedfate", "twitch", "urgot", "varus", "vayne", "veigar",
+    "velkoz", "vex", "viktor", "vladimir", "xayah", "xerath", "yunara",
+    "yuumi", "zeri", "ziggs", "zilean", "zoe", "zyra",
+}
+
+
 @app.get("/api/champions")
 async def get_champions() -> dict[str, Any]:
     """Retorna la lista limpia y deduplicada de todos los campeones oficiales (Data Dragon IDs)."""
@@ -158,11 +180,27 @@ async def get_champions() -> dict[str, Any]:
         norm = alias_to_dd.get(norm, norm).lower()
         is_clean_dd = bool(re.fullmatch(r"[A-Za-z0-9]+", name)) and name.lower() != "wukong"
 
+        classes = tags.get("class", [])
+        low_classes = {str(c).lower() for c in classes}
+        is_ranged = (norm in _RANGED_EXTRA) or ("marksman" in low_classes)
+        rng = "Ranged" if is_ranged else "Melee"
+        if norm in _ENERGY_CHAMPS:
+            res = "Energy"
+        elif norm in _MANALESS_CHAMPS:
+            res = "Manaless"
+        else:
+            res = "Mana"
+
+        dmg_raw = str(tags.get("damage", "mixed")).lower()
+        dmg_lbl = "AD" if dmg_raw in ("ad", "physical") else ("AP" if dmg_raw in ("ap", "magic") else "Hybrid")
+
         entry = {
             "name": name,
             "roles": tags.get("roles", []),
-            "damage": tags.get("damage", "mixed"),
-            "class": tags.get("class", []),
+            "damage": dmg_lbl,
+            "range": rng,
+            "resource": res,
+            "class": classes,
         }
         # Preferir siempre la clave limpia oficial de Data Dragon (sin espacios ni apóstrofes)
         if norm not in seen or (is_clean_dd and not re.fullmatch(r"[A-Za-z0-9]+", seen[norm]["name"])):
@@ -576,17 +614,29 @@ NEURAL_VOICES: dict[str, str] = {
     "tr": "tr-TR-EmelNeural",
 }
 
-# Perfiles de voz humana HD (Multilingual Neural, sin distorsión de pitch)
+# Perfiles de voz estilo League of Legends (Announcer UK, Esports Caster UK, Coaches HD — sin distorsión robótica)
 VOICE_PERSONAS: dict[str, dict[str, Any]] = {
+    "announcer": {
+        "en": "en-GB-SoniaNeural",
+        "es": "es-ES-ElviraNeural",
+        "rate": "-3%",
+        "pitch": "-2Hz",
+    },
+    "caster": {
+        "en": "en-GB-RyanNeural",
+        "es": "es-ES-AlvaroNeural",
+        "rate": "+2%",
+        "pitch": "-1Hz",
+    },
     "pro_f": {
-        "es": "en-US-AvaMultilingualNeural",
         "en": "en-US-AvaMultilingualNeural",
+        "es": "en-US-AvaMultilingualNeural",
         "rate": "+0%",
         "pitch": "+0Hz",
     },
     "pro_m": {
-        "es": "en-US-AndrewMultilingualNeural",
         "en": "en-US-AndrewMultilingualNeural",
+        "es": "en-US-AndrewMultilingualNeural",
         "rate": "+0%",
         "pitch": "+0Hz",
     },

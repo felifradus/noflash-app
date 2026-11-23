@@ -44,7 +44,7 @@ class RiftdleGame {
     this.secret = this.champions[Math.floor(Math.random() * this.champions.length)];
     this.guesses = [];
     this.won = false;
-    this.hintUsed = false;
+    this.hintLevel = 0;
 
     if (this.inputEl) {
       this.inputEl.value = '';
@@ -53,7 +53,7 @@ class RiftdleGame {
     if (this.dropdownEl) this.dropdownEl.style.display = 'none';
     if (this.hintBoxEl) {
       this.hintBoxEl.style.display = 'none';
-      this.hintBoxEl.textContent = '';
+      this.hintBoxEl.innerHTML = '';
     }
     if (this.winBannerEl) this.winBannerEl.style.display = 'none';
     this.updateStreakUI();
@@ -112,14 +112,30 @@ class RiftdleGame {
     if (this.btnHint) {
       this.btnHint.addEventListener('click', () => {
         if (!this.secret || this.won) return;
-        this.hintUsed = true;
+        this.hintLevel = Math.min(2, (this.hintLevel || 0) + 1);
         const isEn = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
         const dName = displayName(this.secret.name);
         const firstLetter = dName[0];
         const roles = (this.secret.roles || []).map(r => r.toUpperCase()).join(' / ');
-        this.hintBoxEl.textContent = isEn
-          ? `💡 Hint: Starts with "${firstLetter}" · Main role: ${roles}`
-          : `💡 Pista: Empieza con "${firstLetter}" · Rol principal: ${roles}`;
+        const rng = this.secret.range || 'Melee';
+        const res = this.secret.resource || 'Mana';
+        const textHint = isEn
+          ? `💡 Hint 1: Starts with "<strong>${firstLetter}</strong>" · Role: <strong>${roles}</strong> · ${rng} · ${res}`
+          : `💡 Pista 1: Empieza con "<strong>${firstLetter}</strong>" · Rol: <strong>${roles}</strong> · ${rng} · ${res}`;
+        if (this.hintLevel >= 2) {
+          const splash = typeof champSplashUrl === 'function'
+            ? champSplashUrl(this.secret.name)
+            : `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${this.secret.name}_0.jpg`;
+          this.hintBoxEl.innerHTML = `
+            <div>${textHint}</div>
+            <div class="flashdle-splash-hint">
+              <span>${isEn ? '🎨 Hint 2 (Splash Silhouette):' : '🎨 Pista 2 (Silueta del Splash):'}</span>
+              <div class="flashdle-blur-img" style="background-image:url('${splash}')"></div>
+            </div>
+          `;
+        } else {
+          this.hintBoxEl.innerHTML = `${textHint} <span class="coach-muted">(${isEn ? 'Click Hint again for Splash Art!' : '¡Tocá Pista de nuevo para ver el Splash!'})</span>`;
+        }
         this.hintBoxEl.style.display = 'block';
       });
     }
@@ -185,20 +201,24 @@ class RiftdleGame {
       return;
     }
 
-    this.boardEl.innerHTML = this.guesses.map(g => {
+    this.boardEl.innerHTML = this.guesses.map((g, idx) => {
       const isExactChamp = g.name === this.secret.name ? 'exact' : 'miss';
       const roleMatch = this._compareArray(g.roles, this.secret.roles);
       const dmgMatch = (g.damage || '').toLowerCase() === (this.secret.damage || '').toLowerCase() ? 'exact' : 'miss';
+      const rangeMatch = (g.range || '').toLowerCase() === (this.secret.range || '').toLowerCase() ? 'exact' : 'miss';
+      const resMatch = (g.resource || '').toLowerCase() === (this.secret.resource || '').toLowerCase() ? 'exact' : 'miss';
       const classMatch = this._compareArray(g.class, this.secret.class);
 
       return `
-        <div class="riftdle-row">
+        <div class="riftdle-row flashdle-6cols ${idx === 0 ? 'tile-flip-in' : ''}">
           <div class="rd-cell champ ${isExactChamp}">
             <img src="${champImgUrl(g.name)}" alt="${displayName(g.name)}">
             <span>${displayName(g.name)}</span>
           </div>
           <div class="rd-cell ${roleMatch}">${(g.roles || []).map(r => r.toUpperCase()).join(' / ')}</div>
           <div class="rd-cell ${dmgMatch}">${g.damage || '—'}</div>
+          <div class="rd-cell ${rangeMatch}">${g.range || '—'}</div>
+          <div class="rd-cell ${resMatch}">${g.resource || '—'}</div>
           <div class="rd-cell ${classMatch}">${(g.class || []).join(' / ')}</div>
         </div>
       `;

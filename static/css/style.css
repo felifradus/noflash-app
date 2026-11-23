@@ -3930,3 +3930,131 @@ body {
   border-color: #c89b3c;
   color: #fff;
 }
+
+/* ═══════════════════════════════════════════════════════
+   FLASHDLE (6-COLUMN LOLDLE) + LOL SPLASH & ROLE POLISH
+   ═══════════════════════════════════════════════════════ */
+
+.riftdle-col-headers.flashdle-6cols,
+.riftdle-row.flashdle-6cols {
+  display: grid !important;
+  grid-template-columns: 1.5fr 1fr 0.85fr 0.85fr 0.9fr 1.25fr !important;
+  gap: 0.45rem !important;
+}
+
+@media (max-width: 780px) {
+  .riftdle-col-headers.flashdle-6cols,
+  .riftdle-row.flashdle-6cols {
+    grid-template-columns: 1.3fr 0.9fr 0.8fr 0.8fr 0.85fr 1fr !important;
+    font-size: 0.72rem;
+  }
+}
+
+.riftdle-row .rd-cell {
+  border-radius: 9px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.riftdle-row .rd-cell.exact {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.78), rgba(21, 128, 61, 0.88)) !important;
+  border: 1px solid #4ade80 !important;
+  color: #f0fdf4 !important;
+}
+
+.riftdle-row .rd-cell.partial {
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.78), rgba(180, 83, 9, 0.88)) !important;
+  border: 1px solid #fbbf24 !important;
+  color: #fffbeb !important;
+}
+
+.riftdle-row .rd-cell.miss {
+  background: linear-gradient(180deg, rgba(185, 28, 28, 0.72), rgba(127, 29, 29, 0.86)) !important;
+  border: 1px solid #f87171 !important;
+  color: #fef2f2 !important;
+}
+
+@keyframes flashdleTileFlip {
+  0% { opacity: 0; transform: rotateX(75deg) translateY(-6px); }
+  100% { opacity: 1; transform: rotateX(0deg) translateY(0); }
+}
+
+.riftdle-row.tile-flip-in .rd-cell {
+  animation: flashdleTileFlip 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.riftdle-row.tile-flip-in .rd-cell:nth-child(2) { animation-delay: 0.06s; }
+.riftdle-row.tile-flip-in .rd-cell:nth-child(3) { animation-delay: 0.12s; }
+.riftdle-row.tile-flip-in .rd-cell:nth-child(4) { animation-delay: 0.18s; }
+.riftdle-row.tile-flip-in .rd-cell:nth-child(5) { animation-delay: 0.24s; }
+.riftdle-row.tile-flip-in .rd-cell:nth-child(6) { animation-delay: 0.30s; }
+
+.flashdle-splash-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.flashdle-blur-img {
+  width: 140px;
+  height: 76px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center 22%;
+  filter: blur(8px) contrast(1.15);
+  border: 1.5px solid #c89b3c;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+/* Splash Art épico en In-Game Waiting Card */
+.ingame-waiting-card {
+  position: relative;
+  overflow: hidden;
+  padding: 2.6rem 2rem !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(200, 155, 60, 0.45) !important;
+  background:
+    linear-gradient(180deg, rgba(1, 10, 19, 0.72) 0%, rgba(9, 20, 40, 0.88) 60%, rgba(1, 10, 19, 0.96) 100%),
+    url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/AurelionSol_0.jpg') center 25% / cover no-repeat !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(240, 230, 210, 0.12) !important;
+}
+
+.ingame-waiting-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #0ac8b9, #f0e6d2, #c89b3c, transparent);
+}
+
+/* Splash Art sutil en Warm-Up / Flashdle Hub */
+.riftdle-container {
+  position: relative;
+  padding: 1.6rem 1.75rem;
+  border-radius: 16px;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  background:
+    linear-gradient(180deg, rgba(9, 20, 40, 0.86) 0%, rgba(4, 12, 24, 0.96) 45%, rgba(2, 10, 20, 0.98) 100%),
+    url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg') center top / cover no-repeat;
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.65);
+}
+
+/* Colores distintivos de LoL por Rol en botones de Draft/Análisis */
+.role-btn[data-role="TOP"].active, .role-tab[data-role="TOP"].active { border-color: #f97316 !important; box-shadow: 0 0 14px rgba(249, 115, 22, 0.35); }
+.role-btn[data-role="JUNGLE"].active, .role-tab[data-role="JUNGLE"].active { border-color: #22c55e !important; box-shadow: 0 0 14px rgba(34, 197, 94, 0.35); }
+.role-btn[data-role="MIDDLE"].active, .role-tab[data-role="MIDDLE"].active { border-color: #a855f7 !important; box-shadow: 0 0 14px rgba(168, 85, 247, 0.35); }
+.role-btn[data-role="BOTTOM"].active, .role-tab[data-role="BOTTOM"].active { border-color: #eab308 !important; box-shadow: 0 0 14px rgba(234, 179, 8, 0.35); }
+.role-btn[data-role="UTILITY"].active, .role-tab[data-role="UTILITY"].active { border-color: #0ac8b9 !important; box-shadow: 0 0 14px rgba(10, 200, 185, 0.35); }
+
+/* Elevación suave y más comodidad visual en tarjetas */
+.ingame-card,
+.coach-box,
+.gameplan-box {
+  border-radius: 12px;
+  border: 1px solid rgba(200, 155, 60, 0.28);
+  background: linear-gradient(160deg, rgba(13, 27, 46, 0.92), rgba(7, 16, 30, 0.96));
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(240, 230, 210, 0.07);
+}

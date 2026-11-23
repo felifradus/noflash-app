@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=28">
+  <link rel="stylesheet" href="/static/css/style.css?v=29">
 </head>
 <body>
 
@@ -46,7 +46,7 @@
         <button class="nav-tab" data-view="ingame" id="nav-ingame">
           <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">En Partida</span>
         </button>
-        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Riftdle, Micro Warm-Up & Macro Quiz">
+        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Flashdle, Micro Warm-Up & Macro Quiz">
           <i class="fa-solid fa-gamepad"></i> <span data-i18n="nav_warmup">Mini-Juegos / Warm-Up</span>
         </button>
       </nav>
@@ -73,9 +73,11 @@
         <option value="ja">JA</option>
         <option value="tr">TR</option>
       </select>
-      <select class="lang-select voice-persona-select" id="voice-persona-select" title="Voz del Coach / Coach Voice">
-        <option value="pro_f">🎙️ Voz F (HD)</option>
-        <option value="pro_m">🎙️ Voz M (HD)</option>
+      <select class="lang-select voice-persona-select" id="voice-persona-select" title="Coach Voice / Voz del Coach">
+        <option value="announcer">👑 Announcer</option>
+        <option value="caster">🎧 Caster</option>
+        <option value="pro_f">🎙️ Ava (HD)</option>
+        <option value="pro_m">🎙️ Andrew (HD)</option>
       </select>
       <button class="lcu-pill icon-only voice-pill" id="btn-voice-toggle" title="Activar o silenciar Coach por Voz">
         <i class="fa-solid fa-volume-high"></i>
@@ -556,22 +558,22 @@
       <div class="riftdle-container">
         <!-- Selector de 3 modos -->
         <div class="warmup-tabs" id="warmup-tabs">
-          <button class="warmup-tab active" data-mode="riftdle"><i class="fa-solid fa-dice"></i> Riftdle</button>
-          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="wu_tab_micro">Calentar Micro (20s)</span></button>
-          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> <span data-i18n="wu_tab_quiz">Quiz Macro & Builds</span></button>
+          <button class="warmup-tab active" data-mode="riftdle"><i class="fa-solid fa-bolt"></i> Flashdle</button>
+          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="wu_tab_micro">Micro Warm-Up (20s)</span></button>
+          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> <span data-i18n="wu_tab_quiz">Macro & Builds Quiz</span></button>
         </div>
 
-        <!-- MODO 1: RIFTDLE -->
+        <!-- MODO 1: FLASHDLE (LoLdle-style) -->
         <div class="warmup-pane active" id="pane-riftdle">
           <div class="riftdle-header">
             <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-dice"></i> <span data-i18n="rd_title">Riftdle — Adiviná el Campeón</span></h2>
-              <p class="coach-muted" style="margin:0;" data-i18n="rd_legend">🟢 Exacto · 🟡 Parcial · 🔴 No coincide</p>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-bolt"></i> <span data-i18n="rd_title">Flashdle — Guess the LoL Champion</span></h2>
+              <p class="coach-muted" style="margin:0;" data-i18n="rd_legend">🟢 Exact · 🟡 Partial · 🔴 Miss</p>
             </div>
             <div class="riftdle-actions">
-              <span class="riftdle-streak-pill" id="riftdle-streak">🔥 Racha: 0</span>
-              <button class="btn-switch-account" id="btn-riftdle-hint"><i class="fa-solid fa-lightbulb"></i> <span data-i18n="rd_hint">Pista</span></button>
-              <button class="btn-switch-account" id="btn-riftdle-new"><i class="fa-solid fa-shuffle"></i> <span data-i18n="rd_new">Nuevo</span></button>
+              <span class="riftdle-streak-pill" id="riftdle-streak">🔥 Streak: 0</span>
+              <button class="btn-switch-account" id="btn-riftdle-hint"><i class="fa-solid fa-lightbulb"></i> <span data-i18n="rd_hint">Hint</span></button>
+              <button class="btn-switch-account" id="btn-riftdle-new"><i class="fa-solid fa-shuffle"></i> <span data-i18n="rd_new">New</span></button>
             </div>
           </div>
 
@@ -579,15 +581,17 @@
           <div id="riftdle-win-banner" class="riftdle-win-banner" style="display:none;"></div>
 
           <div class="riftdle-search-wrap">
-            <input type="text" id="riftdle-input" data-i18n-placeholder="rd_placeholder" placeholder="Escribí el nombre de un campeón (ej: Jinx, Zed, Thresh)..." autocomplete="off">
+            <input type="text" id="riftdle-input" data-i18n-placeholder="rd_placeholder" placeholder="Type any champion name (e.g. Jinx, Zed, Thresh)..." autocomplete="off">
             <div id="riftdle-dropdown" class="riftdle-dropdown" style="display:none;"></div>
           </div>
 
-          <div class="riftdle-col-headers">
-            <span data-i18n="rd_col_champ">Campeón</span>
-            <span data-i18n="rd_col_role">Rol</span>
-            <span data-i18n="rd_col_dmg">Daño</span>
-            <span data-i18n="rd_col_class">Clase</span>
+          <div class="riftdle-col-headers flashdle-6cols">
+            <span data-i18n="rd_col_champ">Champion</span>
+            <span data-i18n="rd_col_role">Role</span>
+            <span data-i18n="rd_col_dmg">Damage</span>
+            <span data-i18n="rd_col_range">Range</span>
+            <span data-i18n="rd_col_res">Resource</span>
+            <span data-i18n="rd_col_class">Class</span>
           </div>
           <div id="riftdle-board" class="riftdle-board"></div>
         </div>
@@ -648,9 +652,9 @@
       <div class="idle-popup-title" data-i18n="idle_title">⏳ ¿Esperando cola o al pedo?</div>
       <p class="idle-popup-text" data-i18n="idle_sub">Calentá reflejos o tirate una ronda rápida mientras encontrás partida:</p>
       <div class="idle-popup-btns">
+        <button class="idle-btn" data-go="riftdle">⚡ Flashdle</button>
         <button class="idle-btn" data-go="micro">🎯 Micro (20s)</button>
         <button class="idle-btn" data-go="quiz">🧠 Macro/Builds</button>
-        <button class="idle-btn" data-go="riftdle">🎲 Riftdle</button>
       </div>
     </div>
   </main>
@@ -687,9 +691,9 @@
   </footer>
 
   <!-- App JS -->
-  <script src="/static/js/i18n.js?v=30"></script>
-  <script src="/static/js/voice.js?v=30"></script>
-  <script src="/static/js/riftdle.js?v=29"></script>
-  <script src="/static/js/app.js?v=30"></script>
+  <script src="/static/js/i18n.js?v=31"></script>
+  <script src="/static/js/voice.js?v=31"></script>
+  <script src="/static/js/riftdle.js?v=31"></script>
+  <script src="/static/js/app.js?v=31"></script>
 </body>
 </html>

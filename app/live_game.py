@@ -173,6 +173,35 @@ def _build_early_lane_plan(
     return title, msg
 
 
+def _resolve_spell(spell_obj: dict[str, Any], default_name: str = "Flash") -> dict[str, Any]:
+    """Resuelve nombre, clave exacta de Data Dragon (dd_key) y cooldown en cualquier idioma."""
+    disp = (spell_obj or {}).get("displayName") or default_name
+    raw = (spell_obj or {}).get("rawDisplayName") or ""
+    combo = f"{raw} {disp}".lower()
+
+    if "summonerflash" in combo or "flash" in combo or "destello" in combo:
+        return {"name": disp, "dd_key": "SummonerFlash", "cooldown": 300}
+    if "summonerteleport" in combo or "teletransport" in combo or "teleport" in combo:
+        return {"name": disp, "dd_key": "SummonerTeleport", "cooldown": 300}
+    if "summonerdot" in combo or "ignite" in combo or "prender" in combo or "incendi" in combo:
+        return {"name": disp, "dd_key": "SummonerDot", "cooldown": 180}
+    if "summonerheal" in combo or "heal" in combo or "curaci" in combo or "curar" in combo:
+        return {"name": disp, "dd_key": "SummonerHeal", "cooldown": 240}
+    if "summonerexhaust" in combo or "exhaust" in combo or "extenua" in combo or "exaust" in combo:
+        return {"name": disp, "dd_key": "SummonerExhaust", "cooldown": 210}
+    if "summonerbarrier" in combo or "barrier" in combo or "barrera" in combo or "barreira" in combo:
+        return {"name": disp, "dd_key": "SummonerBarrier", "cooldown": 180}
+    if "summonerhaste" in combo or "ghost" in combo or "fantasmal" in combo:
+        return {"name": disp, "dd_key": "SummonerHaste", "cooldown": 210}
+    if "summonerboost" in combo or "cleanse" in combo or "limpiar" in combo or "purificar" in combo:
+        return {"name": disp, "dd_key": "SummonerBoost", "cooldown": 210}
+    if "summonersmite" in combo or "smite" in combo or "aplastar" in combo or "golpear" in combo:
+        return {"name": disp, "dd_key": "SummonerSmite", "cooldown": 90}
+    if "summonersnowball" in combo or "mark" in combo or "marca" in combo:
+        return {"name": disp, "dd_key": "SummonerSnowball", "cooldown": 80}
+    return {"name": disp, "dd_key": "SummonerFlash", "cooldown": _spell_cooldown(disp)}
+
+
 def _spell_cooldown(display_name: str) -> int:
     low = (display_name or "").lower()
     for key, cd in SPELL_BASE_COOLDOWNS.items():
@@ -277,8 +306,8 @@ class LiveGameMonitor:
                 lv6_threats.append(champ)
 
             spells_raw = p.get("summonerSpells", {})
-            sp1 = (spells_raw.get("summonerSpellOne") or {}).get("displayName", "Flash")
-            sp2 = (spells_raw.get("summonerSpellTwo") or {}).get("displayName", "Ignite")
+            sp1_info = _resolve_spell(spells_raw.get("summonerSpellOne") or {}, "Flash")
+            sp2_info = _resolve_spell(spells_raw.get("summonerSpellTwo") or {}, "Ignite")
 
             enemies.append({
                 "champion": champ,
@@ -288,10 +317,7 @@ class LiveGameMonitor:
                 "tag_line": t_line,
                 "is_dead": bool(p.get("isDead", False)),
                 "items_count": len(items),
-                "spells": [
-                    {"name": sp1, "cooldown": _spell_cooldown(sp1)},
-                    {"name": sp2, "cooldown": _spell_cooldown(sp2)},
-                ],
+                "spells": [sp1_info, sp2_info],
             })
 
         # ── Generar avisos tácticos en vivo (con ID único para que la voz no repita) ──
