@@ -351,8 +351,12 @@ def main() -> None:
     # Aplicar barra oscura + ícono Hextech apenas aparezca la ventana
     threading.Thread(target=_apply_native_windows_theme, daemon=True).start()
 
-    # Iniciar loop gráfico nativo (Edge WebView2 en Windows)
-    webview.start()
+    # Persistir localStorage/cookies (nick, cuentas guardadas, récords, idioma, recordatorios)
+    storage_dir = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "NoFlash" / "webview_data"
+    storage_dir.mkdir(parents=True, exist_ok=True)
+
+    # Iniciar loop gráfico nativo (Edge WebView2 en Windows) con almacenamiento persistente
+    webview.start(private_mode=False, storage_path=str(storage_dir))
 
 
 if __name__ == "__main__":

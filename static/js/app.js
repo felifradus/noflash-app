@@ -1583,6 +1583,18 @@ class DraftAnalyzer {
       this.savedAccountsWrap.style.display = 'none';
       return;
     }
+    // Pre-rellenar automáticamente el último nick/región analizado al abrir la app
+    if (this.gameNameInput && !this.gameNameInput.value.trim() && list[0]) {
+      this.gameNameInput.value = list[0].gameName || '';
+      if (this.tagLineInput) this.tagLineInput.value = list[0].tagLine || '';
+      if (this.regionSelect && list[0].region) {
+        this.regionSelect.value = list[0].region;
+        this.regionSelect.dispatchEvent(new Event('change'));
+        if (this.platformSelect && list[0].platform) {
+          this.platformSelect.value = list[0].platform;
+        }
+      }
+    }
     this.savedAccountsWrap.style.display = 'flex';
     this.savedAccountsList.innerHTML = list.map((acc, idx) => `
       <span class="saved-account-chip" data-idx="${idx}">
