@@ -576,7 +576,7 @@ NEURAL_VOICES: dict[str, str] = {
     "tr": "tr-TR-EmelNeural",
 }
 
-# Perfiles de voz ultra-humana (Multilingual Neural: pronuncian perfecto español + términos de LoL)
+# Perfiles de voz humana HD (Multilingual Neural, sin distorsión de pitch)
 VOICE_PERSONAS: dict[str, dict[str, Any]] = {
     "pro_f": {
         "es": "en-US-AvaMultilingualNeural",
@@ -588,31 +588,7 @@ VOICE_PERSONAS: dict[str, dict[str, Any]] = {
         "es": "en-US-AndrewMultilingualNeural",
         "en": "en-US-AndrewMultilingualNeural",
         "rate": "+0%",
-        "pitch": "-1Hz",
-    },
-    "veigar": {
-        "es": "en-US-BrianMultilingualNeural",
-        "en": "en-GB-RyanNeural",
-        "rate": "+12%",
-        "pitch": "+26Hz",
-    },
-    "heimer": {
-        "es": "en-US-AndrewMultilingualNeural",
-        "en": "en-GB-RyanNeural",
-        "rate": "+10%",
-        "pitch": "+12Hz",
-    },
-    "jinx": {
-        "es": "en-US-EmmaMultilingualNeural",
-        "en": "en-US-EmmaMultilingualNeural",
-        "rate": "+13%",
-        "pitch": "+12Hz",
-    },
-    "mordekaiser": {
-        "es": "en-US-BrianMultilingualNeural",
-        "en": "en-US-BrianMultilingualNeural",
-        "rate": "-10%",
-        "pitch": "-20Hz",
+        "pitch": "+0Hz",
     },
 }
 

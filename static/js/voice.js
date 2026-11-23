@@ -5,35 +5,20 @@
 
 const VOICE_PREVIEWS = {
   pro_f: {
-    es: 'Hola, soy tu Coach de NoFlash. Vamos a ganar este draft y controlar cada objetivo.',
-    en: 'Hey, I am your NoFlash Coach. Let us win this draft and control every objective.',
+    es: 'Hola, soy tu Coach de No Flash. Vamos a ganar este draft y controlar cada objetivo.',
+    en: 'Hey, I am your No Flash Coach. Let us win this draft and control every objective.',
   },
   pro_m: {
-    es: 'Todo listo. Te acompaño en el draft y te aviso cada objetivo en partida.',
-    en: 'Ready to roll. I will guide your draft and track every objective in-game.',
-  },
-  veigar: {
-    es: '¡Jajaja! ¿Se ríen de mi estatura? ¡Soy tu Coach de NoFlash y vamos a aplastar ese draft!',
-    en: 'Hahaha! Is that a short joke? I am your NoFlash Coach, and we shall obliterate this draft!',
-  },
-  heimer: {
-    es: '¡Fascinante! Mis cálculos confirman que con este draft tu probabilidad de victoria sube un 42 coma 7 por ciento.',
-    en: 'Fascinating! My calculations confirm this draft increases your victory probability by 42 point 7 percent!',
-  },
-  jinx: {
-    es: '¡Ey! ¿Listo para romper todo? ¡Elegí el pick que te digo y hacemos volar el nexo!',
-    en: 'Hey! Ready to blow stuff up? Lock in my pick and let us wreck their nexus!',
-  },
-  mordekaiser: {
-    es: 'El destino está sellado. Escuchá mis órdenes y arrastrá al enemigo al Reino de la Muerte.',
-    en: 'Destiny is sealed. Follow my commands and drag your enemies into the Death Realm.',
+    es: 'Todo listo. Soy tu Coach de No Flash, te acompaño en el draft y en partida.',
+    en: 'Ready to roll. I am your No Flash Coach, guiding your draft and live match.',
   },
 };
 
 class VoiceCoach {
   constructor() {
     this.enabled = localStorage.getItem('NoFlash_voice_enabled') !== 'false';
-    this.persona = localStorage.getItem('NoFlash_voice_persona') || 'pro_f';
+    const saved = localStorage.getItem('NoFlash_voice_persona') || 'pro_f';
+    this.persona = VOICE_PREVIEWS[saved] ? saved : 'pro_f';
     this.spokenIds = new Set();
     this.lastSpokenText = '';
     this.lastSpokenAt = 0;
