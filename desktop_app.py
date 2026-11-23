@@ -7,10 +7,16 @@ nativa de Windows (sin navegador ni barra de direcciones), con modo 'Siempre enc
 import ctypes
 import os
 import socket
+import subprocess
 import sys
 import threading
 import time
 from pathlib import Path
+
+try:
+    import winreg
+except ImportError:
+    winreg = None
 
 # Constantes Win32 para "Siempre encima", Barra Oscura e Ícono nativo
 HWND_TOPMOST = -1
@@ -25,6 +31,10 @@ ICON_BIG = 1
 IMAGE_ICON = 1
 LR_LOADFROMFILE = 0x0010
 WINDOW_TITLE = "NoFlash — Live LoL Coach"
+RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
+RUN_REG_NAME = "NoFlashAutoLaunch"
+CREATE_NO_WINDOW = 0x08000000
+DETACHED_PROCESS = 0x00000008
 
 
 def _resource_dir() -> Path:
@@ -84,6 +94,120 @@ except ImportError:
     pass
 
 
+def _build_launch_args(watch_lol: bool = False) -> list[str]:
+    """Construye el comando para lanzar NoFlash (soporta .exe congelado o Python source)."""
+    if getattr(sys, "frozen", False):
+        cmd = [sys.executable]
+    else:
+        py_exe = Path(sys.executable)
+        pythonw = py_exe.with_name("pythonw.exe")
+        exe = str(pythonw if pythonw.exists() else py_exe)
+        cmd = [exe, str(Path(__file__).resolve())]
+    if watch_lol:
+        cmd.append("--watch-lol")
+    return cmd
+
+
+def is_auto_launch_enabled() -> bool:
+    """Devuelve True si el watcher automático al abrir LoL está registrado en Windows."""
+    if winreg is None:
+        return False
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_REG_PATH, 0, winreg.KEY_READ) as key:
+            winreg.QueryValueEx(key, RUN_REG_NAME)
+            return True
+    except OSError:
+        return False
+
+
+def set_auto_launch_enabled(enable: bool) -> bool:
+    """Activa o desactiva el inicio automático de NoFlash al abrir League of Legends."""
+    if winreg is None:
+        return False
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_REG_PATH, 0, winreg.KEY_SET_VALUE) as key:
+            if enable:
+                args = _build_launch_args(watch_lol=True)
+                cmd_str = " ".join(f'"{a}"' if " " in a else a for a in args)
+                winreg.SetValueEx(key, RUN_REG_NAME, 0, winreg.REG_SZ, cmd_str)
+            else:
+                try:
+                    winreg.DeleteValue(key, RUN_REG_NAME)
+                except FileNotFoundError:
+                    pass
+    except OSError:
+        return False
+
+    if enable:
+        # Lanzar el watcher silencioso ahora mismo (el mutex evita duplicados)
+        try:
+            subprocess.Popen(
+                _build_launch_args(watch_lol=True),
+                creationflags=CREATE_NO_WINDOW | DETACHED_PROCESS,
+                close_fds=True,
+            )
+        except Exception:
+            pass
+    return is_auto_launch_enabled()
+
+
+def _is_lol_client_running(check_tasklist: bool = False) -> bool:
+    """Detecta si el cliente de League of Legends está abierto (0% CPU vía lockfile)."""
+    for drive in ("C", "D", "E", "F"):
+        if os.path.exists(f"{drive}:\\Riot Games\\League of Legends\\lockfile"):
+            return True
+    if check_tasklist:
+        try:
+            out = subprocess.check_output(
+                ["tasklist", "/FI", "IMAGENAME eq LeagueClientUx.exe", "/NH"],
+                creationflags=CREATE_NO_WINDOW,
+                timeout=3,
+            )
+            return b"LeagueClientUx.exe" in out
+        except Exception:
+            return False
+    return False
+
+
+def run_lol_watcher() -> None:
+    """
+    Modo silencioso (--watch-lol): espera en segundo plano (~5 MB RAM, 0% CPU)
+    y abre NoFlash automáticamente apenas se inicia League of Legends.
+    """
+    # Mutex de instancia única para no duplicar watchers
+    kernel32 = ctypes.windll.kernel32
+    _mutex = kernel32.CreateMutexW(None, False, "Local\\NoFlashLolWatcherMutex")
+    if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+        return
+
+    user32 = ctypes.windll.user32
+    was_running = _is_lol_client_running(check_tasklist=True)
+    tick = 0
+
+    while True:
+        time.sleep(4)
+        tick += 1
+
+        # Si el usuario desactivó Auto-LoL desde la app, salir limpiamente
+        if tick % 3 == 0 and not is_auto_launch_enabled():
+            return
+
+        is_running = _is_lol_client_running(check_tasklist=(tick % 2 == 0))
+        if is_running and not was_running:
+            # LoL acaba de abrirse -> abrir NoFlash si no está abierto ya
+            hwnd = user32.FindWindowW(None, WINDOW_TITLE)
+            if not hwnd:
+                try:
+                    subprocess.Popen(
+                        _build_launch_args(watch_lol=False),
+                        creationflags=DETACHED_PROCESS,
+                        close_fds=True,
+                    )
+                except Exception:
+                    pass
+        was_running = is_running
+
+
 class DesktopAPI:
     """Funciones nativas expuestas al frontend cuando corre como app de escritorio."""
 
@@ -93,6 +217,12 @@ class DesktopAPI:
 
     def set_window(self, window) -> None:
         self._window = window
+
+    def get_auto_launch(self) -> bool:
+        return is_auto_launch_enabled()
+
+    def toggle_auto_launch(self) -> bool:
+        return set_auto_launch_enabled(not is_auto_launch_enabled())
 
     def toggle_on_top(self) -> bool:
         """Alterna el modo 'Siempre encima' usando Win32 SetWindowPos (sin deadlock)."""
@@ -192,4 +322,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if "--watch-lol" in sys.argv:
+        run_lol_watcher()
+    else:
+        main()

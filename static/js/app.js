@@ -1662,31 +1662,59 @@ class DraftAnalyzer {
     }
   }
 
-  /* ── Botón "Siempre encima" en la app de escritorio (pywebview) ── */
+  /* ── Botones nativos de escritorio (Siempre encima + Auto-abrir con LoL) ── */
   initDesktopPinButton() {
-    const setupPin = () => {
-      if (!this.btnPinWindow || !window.pywebview || !window.pywebview.api) return;
-      this.btnPinWindow.style.display = 'inline-flex';
-      this.btnPinWindow.addEventListener('click', async () => {
+    const setupDesktop = async () => {
+      if (!window.pywebview || !window.pywebview.api) return;
+      const isEnDesk = () => typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+
+      if (this.btnPinWindow) {
+        this.btnPinWindow.style.display = 'inline-flex';
+        this.btnPinWindow.addEventListener('click', async () => {
+          try {
+            const isOnTop = await window.pywebview.api.toggle_on_top();
+            this.btnPinWindow.classList.toggle('connected', isOnTop);
+            this.showToast(
+              isOnTop
+                ? (isEnDesk() ? 'Window pinned Always-on-Top.' : 'Ventana fijada siempre encima del LoL.')
+                : (isEnDesk() ? 'Window set to normal mode.' : 'Ventana en modo normal.'),
+              'info'
+            );
+          } catch (err) {
+            console.error('Error toggling always-on-top:', err);
+          }
+        });
+      }
+
+      const btnAutoLol = document.getElementById('btn-auto-lol');
+      if (btnAutoLol && typeof window.pywebview.api.get_auto_launch === 'function') {
+        btnAutoLol.style.display = 'inline-flex';
         try {
-          const isOnTop = await window.pywebview.api.toggle_on_top();
-          this.btnPinWindow.classList.toggle('connected', isOnTop);
-          const pinSpan = this.btnPinWindow.querySelector('span');
-          if (pinSpan) pinSpan.textContent = isOnTop ? 'Fijada' : 'Fijar';
-          this.showToast(
-            isOnTop ? 'Ventana fijada siempre encima del LoL.' : 'Ventana en modo normal.',
-            'info'
-          );
-        } catch (err) {
-          console.error('Error toggling always-on-top:', err);
-        }
-      });
+          const enabled = await window.pywebview.api.get_auto_launch();
+          btnAutoLol.classList.toggle('connected', !!enabled);
+        } catch {}
+
+        btnAutoLol.addEventListener('click', async () => {
+          try {
+            const nowEnabled = await window.pywebview.api.toggle_auto_launch();
+            btnAutoLol.classList.toggle('connected', !!nowEnabled);
+            this.showToast(
+              nowEnabled
+                ? (isEnDesk() ? 'Auto-open with LoL enabled! NoFlash will launch automatically when you open League.' : '¡Auto-abrir con LoL activado! NoFlash se abrirá solo cuando inicies League of Legends.')
+                : (isEnDesk() ? 'Auto-open with LoL disabled.' : 'Auto-abrir con LoL desactivado.'),
+              nowEnabled ? 'success' : 'info'
+            );
+          } catch (err) {
+            console.error('Error toggling auto-launch:', err);
+          }
+        });
+      }
     };
 
     if (window.pywebview) {
-      setupPin();
+      setupDesktop();
     } else {
-      window.addEventListener('pywebviewready', setupPin);
+      window.addEventListener('pywebviewready', setupDesktop);
     }
   }
 
