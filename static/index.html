@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=30">
+  <link rel="stylesheet" href="/static/css/style.css?v=31">
 </head>
 <body>
 
@@ -46,8 +46,8 @@
         <button class="nav-tab" data-view="ingame" id="nav-ingame">
           <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">En Partida</span>
         </button>
-        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Flashdle, Micro Warm-Up & Macro Quiz">
-          <i class="fa-solid fa-gamepad"></i> <span data-i18n="nav_warmup">Mini-Juegos / Warm-Up</span>
+        <button class="nav-tab nav-warmup-tab" data-view="riftdle" id="nav-riftdle" title="Dodge Arena & Flashdle">
+          <i class="fa-solid fa-gamepad"></i> <span data-i18n="nav_warmup">Warm-Up</span> <span class="new-feature-badge">NEW</span>
         </button>
       </nav>
     </div>
@@ -573,18 +573,58 @@
     <!-- ═══════════════ VISTA 5: WARM-UP & MINI-JUEGOS (COLA) ═══════════════ -->
     <section id="view-riftdle" class="view">
       <div class="riftdle-container">
-        <!-- Selector de 3 modos -->
+        <!-- Selector de 2 modos 100% LoL -->
         <div class="warmup-tabs" id="warmup-tabs">
-          <button class="warmup-tab active" data-mode="riftdle"><i class="fa-solid fa-bolt"></i> Flashdle</button>
-          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="wu_tab_micro">Micro Warm-Up (20s)</span></button>
-          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> <span data-i18n="wu_tab_quiz">Macro & Builds Quiz</span></button>
+          <button class="warmup-tab active" data-mode="dodge">
+            <i class="fa-solid fa-bolt"></i> <span data-i18n="wu_tab_dodge">Dodge Arena</span> <span class="new-feature-badge">NEW</span>
+          </button>
+          <button class="warmup-tab" data-mode="riftdle">
+            <i class="fa-solid fa-dice"></i> Flashdle (LoLdle)
+          </button>
         </div>
 
-        <!-- MODO 1: FLASHDLE (LoLdle-style) -->
-        <div class="warmup-pane active" id="pane-riftdle">
+        <!-- MODO 1 (NEW!): DODGE ARENA — ESQUIVÁ SKILLSHOTS DE LOL + FLASH (F / SPACE) -->
+        <div class="warmup-pane active" id="pane-dodge">
           <div class="riftdle-header">
             <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-bolt"></i> <span data-i18n="rd_title">Flashdle — Guess the LoL Champion</span></h2>
+              <h2 class="section-title" style="margin-bottom:0.2rem;">
+                <i class="fa-solid fa-bolt"></i> <span data-i18n="da_title">Dodge Arena — Skillshot Survival</span> <span class="new-feature-badge">NEW</span>
+              </h2>
+              <p class="coach-muted" style="margin:0;" data-i18n="da_sub">Right-click or move cursor to sidestep Lux R, Blitz Hook, Morg Q, Ashe R &amp; Ziggs R · Press F or Space to FLASH!</p>
+            </div>
+            <div class="riftdle-actions">
+              <span class="riftdle-streak-pill" id="dodge-best">🏆 Best: 0</span>
+              <button class="btn-switch-account" id="btn-dodge-control" title="Switch movement mode">🖱️ Click Move</button>
+              <button class="btn-switch-account" id="btn-dodge-start"><i class="fa-solid fa-play"></i> <span data-i18n="mi_start">Start</span></button>
+            </div>
+          </div>
+
+          <div class="micro-stats-bar dodge-hud-bar">
+            <span>⏱️ <strong id="dodge-time">0.0s</strong></span>
+            <span>🏆 <span data-i18n="da_score">Score:</span> <strong id="dodge-score">0</strong></span>
+            <span>🎖️ <strong id="dodge-rank" style="color:#f6d365;">IRON</strong></span>
+            <span>❤️ <strong id="dodge-hp">❤️❤️❤️</strong></span>
+            <span class="flash-cd-pill" id="dodge-flash-pill">⚡ FLASH: READY (F)</span>
+          </div>
+
+          <div class="dodge-arena-wrap" id="dodge-arena-wrap">
+            <canvas id="dodge-canvas" width="900" height="440"></canvas>
+            <div class="micro-overlay-msg" id="dodge-overlay">
+              <div class="dodge-overlay-badge">✨ NEW FEATURE</div>
+              <h3 style="font-family:'Cinzel',serif;color:#f6d365;margin:0.35rem 0 0.25rem;" data-i18n="da_overlay_title">Sidestep Like Challenger</h3>
+              <p data-i18n="da_overlay_sub">Dodge iconic LoL skillshots, farm Close-Dodge combos, and press <strong>F</strong> or <strong>Space</strong> to Flash out of Lux R!</p>
+              <button class="btn-analyze" id="btn-dodge-start-big" style="max-width:240px;margin:0.65rem auto 0;">
+                <i class="fa-solid fa-bolt"></i> <span data-i18n="da_go">Play Dodge Arena</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO 2: FLASHDLE (LoLdle-style) -->
+        <div class="warmup-pane" id="pane-riftdle">
+          <div class="riftdle-header">
+            <div>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-dice"></i> <span data-i18n="rd_title">Flashdle — Guess the LoL Champion</span></h2>
               <p class="coach-muted" style="margin:0;" data-i18n="rd_legend">🟢 Exact · 🟡 Partial · 🔴 Miss</p>
             </div>
             <div class="riftdle-actions">
@@ -612,66 +652,18 @@
           </div>
           <div id="riftdle-board" class="riftdle-board"></div>
         </div>
-
-        <!-- MODO 2: CALENTAMIENTO MICRO (REFLEJOS & PUNTERÍA) -->
-        <div class="warmup-pane" id="pane-micro">
-          <div class="riftdle-header">
-            <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-crosshairs"></i> <span data-i18n="mi_title">Calentamiento de Micro (20s)</span></h2>
-              <p class="coach-muted" style="margin:0;" data-i18n="mi_sub">Click rápido en objetivos dorados · Evitá los rojos (skillshots).</p>
-            </div>
-            <div class="riftdle-actions">
-              <span class="riftdle-streak-pill" id="micro-best">🏆 Récord: 0</span>
-              <button class="btn-switch-account" id="btn-micro-start"><i class="fa-solid fa-play"></i> <span data-i18n="mi_start">Empezar</span></button>
-            </div>
-          </div>
-          <div class="micro-stats-bar">
-            <span>⏱️ <strong id="micro-time">20.0s</strong></span>
-            <span>🎯 <span data-i18n="mi_hits">Aciertos:</span> <strong id="micro-score">0</strong></span>
-            <span>⚡ <span data-i18n="mi_rt">Reacción:</span> <strong id="micro-rt">— ms</strong></span>
-            <span>📊 <span data-i18n="mi_acc">Precisión:</span> <strong id="micro-acc">100%</strong></span>
-          </div>
-          <div class="micro-arena" id="micro-arena">
-            <div class="micro-overlay-msg" id="micro-overlay">
-              <p data-i18n="mi_overlay">Calentá el mouse y los reflejos antes de tu partida.</p>
-              <button class="btn-analyze" id="btn-micro-start-big" style="max-width:220px;margin:0.5rem auto 0;">
-                <i class="fa-solid fa-bolt"></i> <span data-i18n="mi_go">Arrancar (20s)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MODO 3: QUIZ DE MACRO & BUILDS -->
-        <div class="warmup-pane" id="pane-quiz">
-          <div class="riftdle-header">
-            <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-brain"></i> <span data-i18n="qz_title">Quiz de Macro & Itemización</span></h2>
-              <p class="coach-muted" style="margin:0;" data-i18n="qz_sub">Decisiones reales de SoloQ: qué buildear y cómo jugar el mapa.</p>
-            </div>
-            <div class="riftdle-actions">
-              <span class="riftdle-streak-pill" id="quiz-score-pill">✅ 0 / 0</span>
-              <button class="btn-switch-account" id="btn-quiz-next"><i class="fa-solid fa-forward"></i> <span data-i18n="qz_next">Siguiente</span></button>
-            </div>
-          </div>
-          <div class="quiz-card" id="quiz-card">
-            <span class="quiz-category" id="quiz-category">BUILD</span>
-            <h3 class="quiz-question" id="quiz-question">...</h3>
-            <div class="quiz-options" id="quiz-options"></div>
-            <div class="quiz-feedback" id="quiz-feedback" style="display:none;"></div>
-          </div>
-        </div>
       </div>
     </section>
 
-    <!-- POP-UP AMIGABLE DE COLA / INACTIVIDAD -->
+    <!-- POP-UP AMIGABLE DE COLA / INACTIVIDAD (con NEW Dodge Arena!) -->
     <div class="idle-popup" id="idle-popup" style="display:none;">
       <button class="idle-popup-close" id="idle-popup-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
-      <div class="idle-popup-title" data-i18n="idle_title">⏳ ¿Esperando cola o al pedo?</div>
-      <p class="idle-popup-text" data-i18n="idle_sub">Calentá reflejos o tirate una ronda rápida mientras encontrás partida:</p>
+      <div class="idle-popup-badge">✨ NEW QUEUE MODE</div>
+      <div class="idle-popup-title" data-i18n="idle_title">⏳ Waiting in queue?</div>
+      <p class="idle-popup-text" data-i18n="idle_sub">Dodge Lux R &amp; Blitz hooks with Flash in our new Dodge Arena, or guess champs in Flashdle:</p>
       <div class="idle-popup-btns">
-        <button class="idle-btn" data-go="riftdle">⚡ Flashdle</button>
-        <button class="idle-btn" data-go="micro">🎯 Micro (20s)</button>
-        <button class="idle-btn" data-go="quiz">🧠 Macro/Builds</button>
+        <button class="idle-btn idle-btn-hot" data-go="dodge">⚡ Dodge Arena (NEW)</button>
+        <button class="idle-btn" data-go="riftdle">🎲 Flashdle</button>
       </div>
     </div>
   </main>
@@ -708,9 +700,10 @@
   </footer>
 
   <!-- App JS -->
-  <script src="/static/js/i18n.js?v=31"></script>
+  <script src="/static/js/i18n.js?v=32"></script>
   <script src="/static/js/voice.js?v=33"></script>
-  <script src="/static/js/riftdle.js?v=31"></script>
+  <script src="/static/js/riftdle.js?v=32"></script>
+  <script src="/static/js/dodge_arena.js?v=1"></script>
   <script src="/static/js/app.js?v=33"></script>
 </body>
 </html>
