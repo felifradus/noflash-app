@@ -4960,3 +4960,180 @@ button, select, input {
   color: #7ef9ee !important;
   box-shadow: 0 0 10px rgba(10, 200, 185, 0.25);
 }
+
+
+/* ── Post-Game Match Review Modal ── */
+.postgame-box {
+  max-width: 720px !important;
+  width: 94% !important;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.pg-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.22);
+}
+.pg-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.pg-champ-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  border: 2px solid #c8aa6e;
+  box-shadow: 0 0 18px rgba(200, 170, 110, 0.25);
+}
+.pg-kicker {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #0ac8b9;
+  margin-bottom: 2px;
+}
+.pg-hero h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #f0e6d2;
+}
+.pg-sub {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+.pg-grade-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  border: 2px solid #c8aa6e;
+  background: linear-gradient(145deg, rgba(200, 170, 110, 0.28), rgba(10, 20, 40, 0.9));
+  color: #f0e6d2;
+  box-shadow: 0 0 20px rgba(200, 170, 110, 0.25);
+}
+.pg-grade-badge.grade-splus,
+.pg-grade-badge.grade-s {
+  border-color: #f5c542;
+  color: #ffe28a;
+  box-shadow: 0 0 24px rgba(245, 197, 66, 0.35);
+}
+.pg-grade-badge.grade-a {
+  border-color: #0ac8b9;
+  color: #7ef9ee;
+}
+.pg-grade-badge.grade-c {
+  border-color: #f87171;
+  color: #fca5a5;
+}
+.pg-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+.pg-stat {
+  background: rgba(15, 25, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pg-stat span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+.pg-stat strong {
+  font-size: 1.05rem;
+  color: #f8fafc;
+}
+.pg-stat small {
+  font-size: 0.72rem;
+  color: #c8aa6e;
+}
+.pg-deaths-section {
+  margin-top: 1rem;
+  background: rgba(10, 18, 32, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+.pg-deaths-section h4 {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  color: #f0e6d2;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.pg-deaths-section h4 i {
+  color: #f87171;
+}
+.pg-deaths-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 170px;
+  overflow-y: auto;
+}
+.pg-death-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding: 0.42rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #f87171;
+  font-size: 0.79rem;
+}
+.pg-death-num {
+  font-weight: 800;
+  color: #f87171;
+  min-width: 22px;
+}
+.pg-death-time {
+  font-family: monospace;
+  font-weight: 700;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+.pg-death-phase {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(200, 170, 110, 0.16);
+  color: #f0e6d2;
+}
+.pg-death-phase.late {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+}
+.pg-death-tip {
+  color: #cbd5e1;
+  flex: 1;
+}
+.pg-death-zero {
+  padding: 0.6rem;
+  text-align: center;
+  color: #38e59d;
+  font-weight: 700;
+  font-size: 0.88rem;
+}

@@ -1985,12 +1985,25 @@ class DraftAnalyzer {
             this.lastLiveEnemiesKey = '';
             this.lastLiveScoutKey = '';
             this.lastLiveState = null;
-            this.showToast(
-              isEnLive
-                ? 'GG! Great match — take a 60s breather, grab some water, and queue up fresh.'
-                : '¡GG! Buena partida — tomate 60s, tomá agua y volvé fresco a la próxima.',
-              'success'
-            );
+
+            // Generar y abrir automáticamente el Resumen Post-Partida si duró >= 3 min
+            const tr = this._matchTracker;
+            if (tr && tr.durationSec >= 180) {
+              const report = this.buildPostGameReport(tr);
+              try {
+                localStorage.setItem('noflash_last_match_report', JSON.stringify(report));
+              } catch {}
+              this._refreshLastReportBtn();
+              this.openPostGameModal(report);
+            } else {
+              this.showToast(
+                isEnLive
+                  ? 'GG! Great match — take a 60s breather, grab some water, and queue up fresh.'
+                  : '¡GG! Buena partida — tomate 60s, tomá agua y volvé fresco a la próxima.',
+                'success'
+              );
+            }
+            this._matchTracker = null;
           }
           if (this.igWaitingEl) this.igWaitingEl.style.display = 'block';
           if (this.igActiveEl) this.igActiveEl.style.display = 'none';
@@ -2025,6 +2038,9 @@ class DraftAnalyzer {
         if (this.igCsEl) this.igCsEl.textContent = `${ap.cs_per_min ?? 0} (${ap.cs ?? 0})`;
         if (this.igKdaEl) this.igKdaEl.textContent = ap.kda || '0/0/0';
         if (this.igGoldEl) this.igGoldEl.textContent = `${ap.current_gold ?? 0}g`;
+
+        // Registrar telemetría en vivo para el Resumen Post-Partida (muertes con minuto y oro)
+        this._recordLiveTelemetry(state, ap);
 
         // Render alertas + hablarlas una sola vez
         const alerts = state.alerts || [];
@@ -2101,6 +2117,269 @@ class DraftAnalyzer {
     setInterval(pollLive, 3000);
     setInterval(() => this._tickSpellTimers(), 1000);
     this.initHabitReminders();
+    this.initPostGameReview();
+  }
+
+  /* ── Post-Game Match Review (telemetría en vivo + resumen automático al terminar) ── */
+  initPostGameReview() {
+    this._refreshLastReportBtn();
+    document.getElementById('btn-open-last-report')?.addEventListener('click', () => {
+      try {
+        const raw = localStorage.getItem('noflash_last_match_report');
+        if (raw) this.openPostGameModal(JSON.parse(raw));
+      } catch {}
+    });
+
+    const modal = document.getElementById('postgame-modal');
+    if (!modal || this._pgBound) return;
+    this._pgBound = true;
+    const close = () => { modal.style.display = 'none'; };
+    document.getElementById('postgame-close')?.addEventListener('click', close);
+    document.getElementById('pg-btn-done')?.addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    document.getElementById('pg-btn-reanalyze')?.addEventListener('click', () => {
+      close();
+      if (this.gameNameInput?.value.trim()) {
+        this.analyzePlayer();
+      } else {
+        this.switchView('search');
+      }
+    });
+  }
+
+  _refreshLastReportBtn() {
+    const btn = document.getElementById('btn-open-last-report');
+    if (!btn) return;
+    try {
+      const has = !!localStorage.getItem('noflash_last_match_report');
+      btn.style.display = has ? 'inline-flex' : 'none';
+    } catch {
+      btn.style.display = 'none';
+    }
+  }
+
+  _recordLiveTelemetry(state, ap) {
+    const gameSec = Number(state.game_time || 0);
+    if (!this._matchTracker || gameSec < (this._matchTracker.durationSec - 30)) {
+      this._matchTracker = {
+        champion: ap.champion || 'Aatrox',
+        role: (ap.position || state.my_position || '').toUpperCase(),
+        durationSec: 0,
+        durationStr: '00:00',
+        kills: 0,
+        deaths: 0,
+        assists: 0,
+        cs: 0,
+        csPerMin: 0,
+        peakGold: 0,
+        deathsLog: [],
+        lastDeaths: 0,
+        finishedAt: Date.now(),
+      };
+    }
+
+    const tr = this._matchTracker;
+    const parts = String(ap.kda || '0/0/0').split('/').map(n => parseInt(n, 10) || 0);
+    const [k, d, a] = parts;
+    const curGold = Math.round(Number(ap.current_gold || 0));
+
+    if (d > tr.lastDeaths) {
+      const diff = Math.min(3, d - tr.lastDeaths);
+      for (let i = 0; i < diff; i++) {
+        tr.deathsLog.push({
+          timeSec: gameSec,
+          timeStr: state.game_time_formatted || '00:00',
+          phase: gameSec < 720 ? 'early' : gameSec < 1380 ? 'mid' : 'late',
+          goldHeld: curGold,
+          level: Number(ap.level || 1),
+        });
+      }
+      tr.lastDeaths = d;
+    }
+
+    tr.champion = ap.champion || tr.champion;
+    if (ap.position) tr.role = String(ap.position).toUpperCase();
+    tr.durationSec = Math.max(tr.durationSec, gameSec);
+    tr.durationStr = state.game_time_formatted || tr.durationStr;
+    tr.kills = k;
+    tr.deaths = d;
+    tr.assists = a;
+    tr.cs = Number(ap.cs || 0);
+    tr.csPerMin = Number(ap.cs_per_min || 0);
+    tr.peakGold = Math.max(tr.peakGold, curGold);
+    tr.finishedAt = Date.now();
+  }
+
+  buildPostGameReport(tr) {
+    const isEn = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+    const isSup = tr.role === 'UTILITY' || tr.role === 'SUP' || tr.role === 'SUPPORT';
+    const kdaNum = (tr.kills + tr.assists) / Math.max(1, tr.deaths);
+    const deathsPer10 = tr.deaths / Math.max(0.5, tr.durationSec / 600);
+    const greedyDeaths = tr.deathsLog.filter(x => x.goldHeld >= 1200);
+    const earlyDeaths = tr.deathsLog.filter(x => x.phase === 'early');
+    const lateDeaths = tr.deathsLog.filter(x => x.phase === 'late');
+
+    // Score & Grade (S+, S, A, B, C)
+    let pts = 65;
+    if (kdaNum >= 4.5) pts += 18;
+    else if (kdaNum >= 3.0) pts += 10;
+    else if (kdaNum < 1.5) pts -= 14;
+    if (tr.deaths <= 2) pts += 12;
+    else if (tr.deaths <= 4) pts += 5;
+    else if (tr.deaths >= 7) pts -= 15;
+    if (!isSup) {
+      if (tr.csPerMin >= 7.5) pts += 12;
+      else if (tr.csPerMin >= 6.5) pts += 6;
+      else if (tr.csPerMin < 5.2) pts -= 10;
+    }
+    if (greedyDeaths.length >= 2) pts -= 6;
+    const grade = pts >= 92 ? 'S+' : pts >= 82 ? 'S' : pts >= 70 ? 'A' : pts >= 56 ? 'B' : 'C';
+
+    const good = [];
+    const fix = [];
+
+    // Strengths
+    if (tr.deaths === 0) {
+      good.push(isEn ? 'Deathless game (0 deaths) — you never gave away shutdowns or tempo.' : 'Partida sin muertes (0 muertes) — nunca regalaste bounty ni tempo.');
+    } else if (tr.deaths <= 3) {
+      good.push(isEn ? `Disciplined survival (only ${tr.deaths} deaths in ${tr.durationStr}).` : `Muy buena supervivencia (solo ${tr.deaths} muertes en ${tr.durationStr}).`);
+    }
+    if (kdaNum >= 3.5) {
+      good.push(isEn ? `High combat impact (${kdaNum.toFixed(1)} KDA — ${tr.kills}/${tr.deaths}/${tr.assists}).` : `Alto impacto en peleas (${kdaNum.toFixed(1)} KDA — ${tr.kills}/${tr.deaths}/${tr.assists}).`);
+    }
+    if (!isSup && tr.csPerMin >= 7.0) {
+      good.push(isEn ? `Strong gold income (${tr.csPerMin} CS/min · ${tr.cs} total CS).` : `Excelente farmeo (${tr.csPerMin} CS/min · ${tr.cs} CS totales).`);
+    }
+    if (greedyDeaths.length === 0 && tr.peakGold < 2300) {
+      good.push(isEn ? 'Clean recall tempo — you spent your gold before major fights.' : 'Buen tempo de backs — gastaste tu oro antes de pelear.');
+    }
+    if (good.length === 0) {
+      good.push(isEn ? `Stayed active through ${tr.durationStr} (${tr.kills + tr.assists} takedowns).` : `Te mantuviste activo durante ${tr.durationStr} (${tr.kills + tr.assists} participaciones).`);
+    }
+
+    // Fixes
+    if (greedyDeaths.length > 0) {
+      fix.push(
+        isEn
+          ? `You died ${greedyDeaths.length}x holding 1,200g+ unspent — recall before forcing fights.`
+          : `Moriste ${greedyDeaths.length} vez/veces con +1,200g sin gastar — backeá antes de forzar pelea.`
+      );
+    }
+    if (earlyDeaths.length >= 2) {
+      fix.push(
+        isEn
+          ? `${earlyDeaths.length} early deaths before 12:00 — track enemy jungle & respect Lv3/Lv6 spikes.`
+          : `${earlyDeaths.length} muertes tempranas antes del min 12 — respetá los spikes de Lv3/Lv6 y al jungla rival.`
+      );
+    }
+    if (lateDeaths.length >= 2) {
+      fix.push(
+        isEn
+          ? `${lateDeaths.length} late-game deaths (after 23:00) — stay grouped and hold Flash for objectives.`
+          : `${lateDeaths.length} muertes en late (después del min 23) — jugá pegado al equipo y guardá Flash para objetivos.`
+      );
+    }
+    if (!isSup && tr.csPerMin < 6.2) {
+      fix.push(
+        isEn
+          ? `Farm was ${tr.csPerMin} CS/min — aim for 6.5–7.5+ by catching side waves between fights.`
+          : `Tu farm fue ${tr.csPerMin} CS/min — buscá llegar a 6.5–7.5+ limpiando oleadas entre peleas.`
+      );
+    }
+    if (tr.peakGold >= 2400) {
+      fix.push(
+        isEn
+          ? `Peak unspent gold reached ${tr.peakGold}g — sitting on a full item weakens your spikes.`
+          : `Llegaste a tener ${tr.peakGold}g sin gastar en mano — no tardes tanto en comprar tu ítem.`
+      );
+    }
+    if (deathsPer10 >= 2.2 && fix.length < 4) {
+      fix.push(
+        isEn
+          ? `High death rate (${tr.deaths} deaths) — avoid trading 1-for-1 when ahead or without vision.`
+          : `Muchas muertes (${tr.deaths}) — evitá tradear 1 por 1 sin visión o cuando tenés ventaja.`
+      );
+    }
+    if (fix.length === 0) {
+      fix.push(isEn ? 'Keep pushing your tempo lead into Dragons, Grubs, and towers faster.' : 'Seguí convirtiendo tu ventaja en Dragones, Grubs y torres más rápido.');
+    }
+
+    return {
+      champion: tr.champion,
+      role: tr.role || 'FLEX',
+      durationStr: tr.durationStr,
+      kdaStr: `${tr.kills} / ${tr.deaths} / ${tr.assists}`,
+      kdaNum: kdaNum.toFixed(1),
+      cs: tr.cs,
+      csPerMin: tr.csPerMin,
+      deaths: tr.deaths,
+      peakGold: tr.peakGold,
+      grade,
+      good,
+      fix,
+      deathsLog: tr.deathsLog,
+    };
+  }
+
+  openPostGameModal(report) {
+    const modal = document.getElementById('postgame-modal');
+    if (!modal || !report) return;
+    const isEn = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+
+    document.getElementById('pg-champ-icon').src = champImgUrl(report.champion);
+    document.getElementById('pg-title').textContent = `${displayName(report.champion)} — ${isEn ? 'Match Summary' : 'Resumen de tu Partida'}`;
+    document.getElementById('pg-sub').textContent = `${report.role} · ${report.durationStr} · ${report.kdaStr}`;
+
+    const gradeEl = document.getElementById('pg-grade');
+    gradeEl.textContent = report.grade;
+    gradeEl.className = `pg-grade-badge grade-${report.grade.replace('+', 'plus').toLowerCase()}`;
+
+    document.getElementById('pg-stats-strip').innerHTML = `
+      <div class="pg-stat"><span>KDA</span><strong>${report.kdaStr}</strong><small>${report.kdaNum} ratio</small></div>
+      <div class="pg-stat"><span>CS</span><strong>${report.cs}</strong><small>${report.csPerMin} / min</small></div>
+      <div class="pg-stat"><span>${isEn ? 'Deaths' : 'Muertes'}</span><strong>${report.deaths}</strong><small>${report.deaths <= 3 ? 'Clean' : 'Focus'}</small></div>
+      <div class="pg-stat"><span>${isEn ? 'Peak Unspent' : 'Oro Máx.'}</span><strong>${report.peakGold}g</strong><small>${report.peakGold >= 2200 ? 'Back sooner' : 'Good tempo'}</small></div>
+    `;
+
+    document.getElementById('pg-good-title').textContent = isEn ? 'What You Did Well' : 'Lo que hiciste bien';
+    document.getElementById('pg-fix-title').textContent = isEn ? 'Things To Fix Next Game' : 'Cosas a corregir';
+    document.getElementById('pg-deaths-title').textContent = isEn
+      ? `Your Deaths Breakdown (${report.deaths})`
+      : `Detalle de tus Muertes (${report.deaths})`;
+
+    document.getElementById('pg-good-list').innerHTML = (report.good || []).map(x => `<li>${x}</li>`).join('');
+    document.getElementById('pg-fix-list').innerHTML = (report.fix || []).map(x => `<li>${x}</li>`).join('');
+
+    const deathsEl = document.getElementById('pg-deaths-list');
+    if (!report.deathsLog || report.deathsLog.length === 0) {
+      deathsEl.innerHTML = `<div class="pg-death-zero">🏆 ${isEn ? 'Deathless match! Zero deaths recorded.' : '¡Partida perfecta sin muertes!'}</div>`;
+    } else {
+      deathsEl.innerHTML = report.deathsLog.map((d, i) => {
+        const phaseLbl = d.phase === 'early'
+          ? (isEn ? 'Early Lane' : 'Early')
+          : d.phase === 'mid'
+            ? 'Mid Game'
+            : (isEn ? 'Late / Objectives' : 'Late / Objetivos');
+        const tip = d.goldHeld >= 1200
+          ? (isEn ? `Holding ${d.goldHeld}g unspent — recall before fighting.` : `Tenías ${d.goldHeld}g sin gastar — backeá antes de pelear.`)
+          : d.phase === 'early'
+            ? (isEn ? 'Check enemy jungle/spikes before trading.' : 'Chequeá jungla rival y spikes antes de tradear.')
+            : d.phase === 'late'
+              ? (isEn ? 'High death timer — stay behind frontline.' : 'Timer largo en late — cuidá el posicionamiento.')
+              : (isEn ? 'Verify river vision before extending.' : 'Revisá visión del río antes de avanzar.');
+        return `
+          <div class="pg-death-row">
+            <span class="pg-death-num">#${i + 1}</span>
+            <span class="pg-death-time">${d.timeStr}</span>
+            <span class="pg-death-phase ${d.phase}">${phaseLbl} · Lv${d.level}</span>
+            <span class="pg-death-tip">${tip}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    modal.style.display = 'flex';
+    window.uiSfx?.playSuccess();
   }
 
   /* ── Custom In-Game Voice Habit Reminders (Minimap, Wards, Tempo, Mental, Custom) ── */
