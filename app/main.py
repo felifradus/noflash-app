@@ -564,7 +564,7 @@ async def import_lcu_setup(request: ImportSetupRequest) -> dict[str, Any]:
 
 NEURAL_VOICES: dict[str, str] = {
     "es": "es-AR-ElenaNeural",
-    "en": "en-US-AriaNeural",
+    "en": "en-US-EmmaMultilingualNeural",
     "pt": "pt-BR-FranciscaNeural",
     "ko": "ko-KR-SunHiNeural",
     "fr": "fr-FR-DeniseNeural",
@@ -574,27 +574,74 @@ NEURAL_VOICES: dict[str, str] = {
     "tr": "tr-TR-EmelNeural",
 }
 
+# Perfiles de voz humana y estilos inspirados en campeones de LoL
+VOICE_PERSONAS: dict[str, dict[str, Any]] = {
+    "pro_f": {
+        "es": "es-AR-ElenaNeural",
+        "en": "en-US-EmmaMultilingualNeural",
+        "rate": "+1%",
+        "pitch": "+0Hz",
+    },
+    "pro_m": {
+        "es": "es-AR-TomasNeural",
+        "en": "en-US-AndrewMultilingualNeural",
+        "rate": "+1%",
+        "pitch": "-2Hz",
+    },
+    "veigar": {
+        "es": "es-ES-AlvaroNeural",
+        "en": "en-GB-RyanNeural",
+        "rate": "+14%",
+        "pitch": "+28Hz",
+    },
+    "heimer": {
+        "es": "es-ES-AlvaroNeural",
+        "en": "en-GB-RyanNeural",
+        "rate": "+11%",
+        "pitch": "+13Hz",
+    },
+    "jinx": {
+        "es": "es-MX-DaliaNeural",
+        "en": "en-US-EmmaMultilingualNeural",
+        "rate": "+15%",
+        "pitch": "+14Hz",
+    },
+    "mordekaiser": {
+        "es": "es-MX-JorgeNeural",
+        "en": "en-US-AndrewMultilingualNeural",
+        "rate": "-9%",
+        "pitch": "-18Hz",
+    },
+}
 
-_TTS_CACHE: dict[tuple[str, str], bytes] = {}
-_TTS_CACHE_MAX = 64
+
+_TTS_CACHE: dict[tuple[str, str, str], bytes] = {}
+_TTS_CACHE_MAX = 96
 
 
 @app.get("/api/tts")
-async def text_to_speech(text: str, lang: str = "es") -> Response:
-    """Genera audio MP3 con voz neuronal natural (edge-tts) con caché en memoria."""
+async def text_to_speech(text: str, lang: str = "es", persona: str = "pro_f") -> Response:
+    """Genera audio MP3 con voz neuronal natural (edge-tts) + selector de personaje."""
     clean_text = (text or "").strip()[:400]
     if not clean_text:
         raise HTTPException(status_code=400, detail="Texto vacío.")
     lang_key = (lang or "es").lower()
-    cache_key = (lang_key, clean_text)
+    persona_key = (persona or "pro_f").lower()
+    if persona_key not in VOICE_PERSONAS:
+        persona_key = "pro_f"
+
+    cache_key = (lang_key, persona_key, clean_text)
     if cache_key in _TTS_CACHE:
         return Response(content=_TTS_CACHE[cache_key], media_type="audio/mpeg")
 
-    voice = NEURAL_VOICES.get(lang_key, "en-US-AriaNeural")
+    cfg = VOICE_PERSONAS[persona_key]
+    voice = cfg.get(lang_key) or (cfg["en"] if lang_key != "es" and persona_key != "pro_f" else NEURAL_VOICES.get(lang_key, "en-US-EmmaMultilingualNeural"))
+    rate = cfg.get("rate", "+1%")
+    pitch = cfg.get("pitch", "+0Hz")
     try:
         import edge_tts
 
-        communicate = edge_tts.Communicate(clean_text, voice=voice, rate="+4%")
+        communicate = edge_tts.Communicate(clean_text, voice=voice, rate=rate, pitch=pitch)
         audio_chunks = bytearray()
         async for chunk in communicate.stream():
             if chunk.get("type") == "audio":
