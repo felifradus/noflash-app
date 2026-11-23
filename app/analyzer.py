@@ -1334,65 +1334,44 @@ class PlayerAnalyzer:
                 spells = ["Destello (Flash)", "Prender (Ignite)"]
                 spell_reason = "Presión de kill en 2v2 y corta curaciones."
 
-        # ── 2. Runas por campeón específico o por clase ──
-        specific_runes: dict[str, tuple[str, str, str]] = {
-            "Jinx": ("Compás Letal", "Precisión", "Inspiración"),
-            "Jhin": ("Pies Veloces", "Precisión", "Brujería"),
-            "Ezreal": ("Ataque Intensificado", "Precisión", "Inspiración"),
-            "Caitlyn": ("Pies Veloces", "Precisión", "Inspiración"),
-            "Kaisa": ("Compás Letal", "Precisión", "Inspiración"),
-            "Lucian": ("Ataque Intensificado", "Precisión", "Inspiración"),
-            "Vayne": ("Compás Letal", "Precisión", "Valor"),
-            "Draven": ("Ataque Intensificado", "Precisión", "Dominación"),
-            "MissFortune": ("Ataque Intensificado", "Precisión", "Brujería"),
-            "Sivir": ("Compás Letal", "Precisión", "Brujería"),
-            "Tristana": ("Ataque Intensificado", "Precisión", "Inspiración"),
-            "Twitch": ("Compás Letal", "Precisión", "Dominación"),
-            "Ashe": ("Compás Letal", "Precisión", "Inspiración"),
-            "Ahri": ("Electrocutar", "Dominación", "Brujería"),
-            "Syndra": ("Primer Golpe", "Inspiración", "Brujería"),
-            "Orianna": ("Invocar a Aery", "Brujería", "Inspiración"),
-            "Lux": ("Cometa Arcano", "Brujería", "Inspiración"),
-            "Zed": ("Electrocutar", "Dominación", "Brujería"),
-            "Yasuo": ("Compás Letal", "Precisión", "Valor"),
-            "Yone": ("Compás Letal", "Precisión", "Valor"),
-            "Aatrox": ("Conquistador", "Precisión", "Valor"),
-            "Darius": ("Conquistador", "Precisión", "Valor"),
-            "Malphite": ("Cometa Arcano", "Brujería", "Valor"),
-            "Vladimir": ("Irrupción de Fase", "Brujería", "Inspiración"),
-            "Thresh": ("Réplica", "Valor", "Inspiración"),
-            "Nautilus": ("Réplica", "Valor", "Inspiración"),
-            "Leona": ("Réplica", "Valor", "Inspiración"),
-            "Braum": ("Guardián", "Valor", "Inspiración"),
-            "Lulu": ("Invocar a Aery", "Brujería", "Inspiración"),
-        }
+        # ── 2. Runas Meta Pro / U.GG (173 campeones validados con Patch actual) ──
+        from app.data.pro_runes import get_pro_rune_page
 
-        if champion in specific_runes:
-            keystone, primary, secondary = specific_runes[champion]
+        pro_page = get_pro_rune_page(champion)
+        if pro_page:
+            keystone = pro_page["keystone"]
+            primary = pro_page["primary_tree"]
+            secondary = pro_page["secondary_tree"]
+            minor_summary = pro_page["minor_summary"]
         elif "marksman" in classes:
-            keystone, primary, secondary = ("Compás Letal", "Precisión", "Inspiración")
+            keystone, primary, secondary = ("Lethal Tempo", "Precision", "Sorcery")
+            minor_summary = "Absorb Life · Legend: Alacrity · Cut Down | Absolute Focus · Gathering Storm"
         elif "assassin" in classes:
-            keystone, primary, secondary = ("Electrocutar", "Dominación", "Brujería")
+            keystone, primary, secondary = ("Electrocute", "Domination", "Sorcery")
+            minor_summary = "Sudden Impact · Grisly Mementos · Ultimate Hunter | Transcendence · Scorch"
         elif "tank" in classes:
             keystone, primary, secondary = (
-                ("Réplica", "Valor", "Inspiración")
+                ("Aftershock", "Resolve", "Inspiration")
                 if role_up in ("SUP", "JG")
-                else ("Agarre del Perpetuo", "Valor", "Inspiración")
+                else ("Grasp of the Undying", "Resolve", "Inspiration")
             )
+            minor_summary = "Demolish · Second Wind · Overgrowth | Biscuit Delivery · Cosmic Insight"
         elif "fighter" in classes:
-            keystone, primary, secondary = ("Conquistador", "Precisión", "Valor")
+            keystone, primary, secondary = ("Conqueror", "Precision", "Resolve")
+            minor_summary = "Triumph · Legend: Alacrity · Last Stand | Bone Plating · Overgrowth"
         elif "mage" in classes:
-            keystone, primary, secondary = ("Cometa Arcano", "Brujería", "Inspiración")
+            keystone, primary, secondary = ("Arcane Comet", "Sorcery", "Inspiration")
+            minor_summary = "Manaflow Band · Transcendence · Scorch | Biscuit Delivery · Cosmic Insight"
         else:
-            keystone, primary, secondary = ("Invocar a Aery", "Brujería", "Inspiración")
+            keystone, primary, secondary = ("Summon Aery", "Sorcery", "Resolve")
+            minor_summary = "Manaflow Band · Transcendence · Scorch | Font of Life · Revitalize"
 
-        # Consejo situacional de runas menores
+        # Mostrar las runas menores exactas (U.GG / Probuilds) + tip situacional
+        rune_tip = f"Pro / U.GG: {minor_summary}"
         if enemy_dive:
-            rune_tip = "Considerá Huesos Revestidos (Valor) o fragmento de Vida escalable contra el burst enemigo."
+            rune_tip += " · Tip: Bone Plating / Scaling HP vs burst."
         elif enemy_cc:
-            rune_tip = "Llevá Inquebrantable o fragmento de Tenacidad para reducir el CC enemigo."
-        else:
-            rune_tip = "Llevá fragmentos ofensivos estándar (Velocidad de Ataque / Fuerza Adaptable + Vida)."
+            rune_tip += " · Tip: Consider Tenacity shard vs heavy CC."
 
         return {
             "spells": spells,

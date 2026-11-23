@@ -57,8 +57,8 @@ RUNE_PRESETS: dict[str, dict[str, Any]] = {
     "Press the Attack": {"primary": 8000, "sub": 8300, "perks": [8005, 8009, 9104, 8014, 8304, 8345, 5005, 5008, 5001]},
     "Conquistador": {"primary": 8000, "sub": 8400, "perks": [8010, 9111, 9104, 8299, 8473, 8451, 5005, 5008, 5001]},
     "Conqueror": {"primary": 8000, "sub": 8400, "perks": [8010, 9111, 9104, 8299, 8473, 8451, 5005, 5008, 5001]},
-    "Electrocutar": {"primary": 8100, "sub": 8200, "perks": [8112, 8139, 8138, 8135, 8226, 8237, 5008, 5008, 5001]},
-    "Electrocute": {"primary": 8100, "sub": 8200, "perks": [8112, 8139, 8138, 8135, 8226, 8237, 5008, 5008, 5001]},
+    "Electrocutar": {"primary": 8100, "sub": 8200, "perks": [8112, 8139, 8140, 8106, 8226, 8210, 5008, 5008, 5001]},
+    "Electrocute": {"primary": 8100, "sub": 8200, "perks": [8112, 8139, 8140, 8106, 8226, 8210, 5008, 5008, 5001]},
     "Cometa Arcano": {"primary": 8200, "sub": 8300, "perks": [8229, 8226, 8210, 8237, 8345, 8347, 5008, 5008, 5001]},
     "Arcane Comet": {"primary": 8200, "sub": 8300, "perks": [8229, 8226, 8210, 8237, 8345, 8347, 5008, 5008, 5001]},
     "Invocar a Aery": {"primary": 8200, "sub": 8300, "perks": [8214, 8226, 8210, 8237, 8345, 8347, 5008, 5008, 5001]},
@@ -73,10 +73,10 @@ RUNE_PRESETS: dict[str, dict[str, Any]] = {
     "Grasp of the Undying": {"primary": 8400, "sub": 8300, "perks": [8437, 8446, 8444, 8451, 8304, 8345, 5005, 5008, 5001]},
     "Guardián": {"primary": 8400, "sub": 8300, "perks": [8465, 8463, 8473, 8451, 8345, 8347, 5007, 5001, 5001]},
     "Guardian": {"primary": 8400, "sub": 8300, "perks": [8465, 8463, 8473, 8451, 8345, 8347, 5007, 5001, 5001]},
-    "Dark Harvest": {"primary": 8100, "sub": 8200, "perks": [8128, 8139, 8138, 8135, 8226, 8237, 5008, 5008, 5001]},
-    "Cosecha Oscura": {"primary": 8100, "sub": 8200, "perks": [8128, 8139, 8138, 8135, 8226, 8237, 5008, 5008, 5001]},
-    "Hail of Blades": {"primary": 8100, "sub": 8000, "perks": [9923, 8143, 8138, 8135, 9111, 8014, 5005, 5008, 5001]},
-    "Lluvia de Espadas": {"primary": 8100, "sub": 8000, "perks": [9923, 8143, 8138, 8135, 9111, 8014, 5005, 5008, 5001]},
+    "Dark Harvest": {"primary": 8100, "sub": 8200, "perks": [8128, 8143, 8140, 8135, 8210, 8232, 5008, 5008, 5001]},
+    "Cosecha Oscura": {"primary": 8100, "sub": 8200, "perks": [8128, 8143, 8140, 8135, 8210, 8232, 5008, 5008, 5001]},
+    "Hail of Blades": {"primary": 8100, "sub": 8000, "perks": [9923, 8143, 8140, 8135, 9111, 8014, 5005, 5008, 5001]},
+    "Lluvia de Espadas": {"primary": 8100, "sub": 8000, "perks": [9923, 8143, 8140, 8135, 9111, 8014, 5005, 5008, 5001]},
     "Glacial Augment": {"primary": 8300, "sub": 8400, "perks": [8351, 8306, 8345, 8347, 8473, 8451, 5007, 5001, 5001]},
     "Aumento Glacial": {"primary": 8300, "sub": 8400, "perks": [8351, 8306, 8345, 8347, 8473, 8451, 5007, 5001, 5001]},
 }
@@ -288,8 +288,23 @@ class LCUClient:
                 "message": "Cliente de LoL no detectado. Abrí League of Legends para importar.",
             }
 
-        # 1. Crear/reemplazar página de runas editable
-        preset = RUNE_PRESETS.get(keystone) or RUNE_PRESETS["Compás Letal"]
+        # 1. Usar página Pro/U.GG exacta de los 9 perks del campeón si coincide la Keystone,
+        #    o fallback al preset validado si el usuario eligió otra Keystone custom en el Editor.
+        from app.data.pro_runes import get_pro_rune_page
+
+        pro_page = get_pro_rune_page(champion)
+        if pro_page and (not keystone or pro_page["keystone"].lower() == keystone.lower()):
+            preset = {
+                "primary": pro_page["primary"],
+                "sub": pro_page["sub"],
+                "perks": pro_page["perks"],
+            }
+        else:
+            preset = RUNE_PRESETS.get(keystone) or (
+                {"primary": pro_page["primary"], "sub": pro_page["sub"], "perks": pro_page["perks"]}
+                if pro_page
+                else RUNE_PRESETS["Lethal Tempo"]
+            )
         runes_ok = False
         status_pages, pages = await self._lcu_request("GET", "/lol-perks/v1/pages")
         if status_pages == 200 and isinstance(pages, list):
