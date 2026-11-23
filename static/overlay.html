@@ -483,7 +483,7 @@
         return;
       }
 
-      const sig = enemies.map(e => `${e.champion}:${(e.spells || []).map(s => s.dd_key).join(',')}`).join('|');
+      const sig = enemies.map(e => `${e.champion}:${e.ult_cooldown || 0}:${(e.spells || []).map(s => `${s.dd_key}=${s.cooldown || 0}`).join(',')}`).join('|');
       if (sig === lastSig) return;
       lastSig = sig;
 

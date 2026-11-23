@@ -92,15 +92,121 @@ ULT_COOLDOWNS: dict[str, tuple[int, int, int]] = {
 }
 
 
-def get_ult_cooldown(champion: str, level: int = 6) -> int:
-    """Devuelve el cooldown base estimado de la R del campeón según su nivel actual."""
+# Ability Haste & Ultimate Haste por itemID oficial de Riot (independiente del idioma)
+ITEM_ABILITY_HASTE: dict[int, int] = {
+    # Botas
+    3158: 10,  # Ionian Boots of Lucidity (+10 AH, +10 Summ Haste)
+    3171: 20,  # Crimson Lucidity (Feats upgrade)
+    # AP / Mages
+    3118: 15,  # Malignance (+15 AH + 20 Ult Haste abajo)
+    2503: 20,  # Blackfire Torch
+    6655: 10,  # Luden's Companion
+    4629: 25,  # Cosmic Drive
+    4628: 25,  # Horizon Focus
+    3137: 15,  # Cryptbloom
+    3003: 25,  # Archangel's Staff
+    3040: 25,  # Seraph's Embrace
+    3100: 10,  # Lich Bane
+    4633: 15,  # Riftmaker
+    3152: 20,  # Hextech Rocketbelt
+    6653: 0,   # Liandry's
+    # AD / Fighters / Assassins
+    3071: 20,  # Black Cleaver
+    3161: 25,  # Spear of Shojin
+    3078: 15,  # Trinity Force
+    6610: 10,  # Sundered Sky
+    6692: 15,  # Eclipse
+    6333: 15,  # Death's Dance
+    3156: 15,  # Maw of Malmortius
+    6696: 20,  # Axiom Arc
+    6698: 15,  # Profane Hydra
+    3074: 15,  # Ravenous Hydra
+    6697: 10,  # Hubris
+    6699: 10,  # Voltaic Cyclosword
+    3508: 15,  # Essence Reaver
+    3004: 15,  # Manamune
+    3042: 15,  # Muramana
+    6694: 15,  # Serylda's Grudge
+    3179: 10,  # Umbral Glaive
+    6609: 15,  # Chempunk Chainsword
+    # Tanks & Supports
+    3110: 20,  # Frozen Heart
+    6662: 15,  # Iceborn Gauntlet
+    3065: 10,  # Spirit Visage
+    2502: 10,  # Unending Despair
+    8020: 15,  # Abyssal Mask
+    3083: 0,   # Warmog's
+    3107: 15,  # Redemption
+    3222: 15,  # Mikael's Blessing
+    2065: 15,  # Shurelya's Battlesong
+    6617: 20,  # Moonstone Renewer
+    6620: 20,  # Echoes of Helia
+    3190: 10,  # Locket of the Iron Solari
+    3109: 10,  # Knight's Vow
+    3050: 10,  # Zeke's Convergence
+    4005: 20,  # Imperial Mandate
+    6616: 15,  # Staff of Flowing Water
+    # Componentes con AH
+    3133: 10,  # Caulfield's Warhammer
+    3067: 10,  # Kindlegem
+    3802: 10,  # Lost Chapter
+    3108: 10,  # Fiendish Codex
+    2022: 5,   # Glowing Mote
+    3057: 10,  # Sheen
+    4642: 10,  # Bandleglass Mirror
+    3024: 10,  # Glacial Buckler
+}
+
+ITEM_ULT_HASTE: dict[int, int] = {
+    3118: 20,  # Malignance (+20 Ultimate Haste)
+}
+
+ITEM_SUMMONER_HASTE: dict[int, int] = {
+    3158: 10,  # Ionian Boots of Lucidity
+    3171: 10,  # Crimson Lucidity
+}
+
+
+def calc_item_haste(item_ids: list[int]) -> tuple[int, int, int]:
+    """Devuelve (ability_haste, ult_haste, summoner_haste) a partir de los itemIDs equipados."""
+    ah = 0
+    uh = 0
+    sh = 0
+    seen_unique_boots = False
+    for raw_id in item_ids or []:
+        try:
+            iid = int(raw_id)
+        except (TypeError, ValueError):
+            continue
+        ah += ITEM_ABILITY_HASTE.get(iid, 0)
+        uh += ITEM_ULT_HASTE.get(iid, 0)
+        if iid in ITEM_SUMMONER_HASTE and not seen_unique_boots:
+            sh += ITEM_SUMMONER_HASTE[iid]
+            seen_unique_boots = True
+    return ah, uh, sh
+
+
+def apply_haste(base_cd: int, haste: int) -> int:
+    """Fórmula oficial de LoL: CD_real = CD_base * 100 / (100 + Haste)."""
+    if haste <= 0:
+        return int(base_cd)
+    return max(5, round(base_cd * 100.0 / (100.0 + haste)))
+
+
+def get_ult_cooldown(champion: str, level: int = 6, item_ids: Optional[list[int]] = None) -> int:
+    """Devuelve el cooldown estimado de la R del campeón según nivel + ítems de Haste/Malignance."""
     key = re.sub(r"[^a-z0-9]", "", (champion or "").lower())
     cds = ULT_COOLDOWNS.get(key, (110, 95, 80))
     if level >= 16:
-        return cds[2]
-    if level >= 11:
-        return cds[1]
-    return cds[0]
+        base = cds[2]
+    elif level >= 11:
+        base = cds[1]
+    else:
+        base = cds[0]
+    if item_ids:
+        ah, uh, _ = calc_item_haste(item_ids)
+        return apply_haste(base, ah + uh)
+    return base
 
 
 # Sinónimos de roles (ES + EN + fonética común)

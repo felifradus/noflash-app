@@ -309,7 +309,13 @@ class LiveGameMonitor:
             sp1_info = _resolve_spell(spells_raw.get("summonerSpellOne") or {}, "Flash")
             sp2_info = _resolve_spell(spells_raw.get("summonerSpellTwo") or {}, "Ignite")
 
-            from app.voice_commands import get_ult_cooldown
+            from app.voice_commands import apply_haste, calc_item_haste, get_ult_cooldown
+            item_ids = [it.get("itemID", 0) for it in p.get("items", []) if it.get("itemID")]
+            _, _, summ_haste = calc_item_haste(item_ids)
+            if summ_haste > 0:
+                sp1_info["cooldown"] = apply_haste(sp1_info["cooldown"], summ_haste)
+                sp2_info["cooldown"] = apply_haste(sp2_info["cooldown"], summ_haste)
+
             enemies.append({
                 "champion": champ,
                 "level": level,
@@ -319,7 +325,7 @@ class LiveGameMonitor:
                 "is_dead": bool(p.get("isDead", False)),
                 "items_count": len(items),
                 "spells": [sp1_info, sp2_info],
-                "ult_cooldown": get_ult_cooldown(champ, level),
+                "ult_cooldown": get_ult_cooldown(champ, level, item_ids=item_ids),
             })
 
         # ── Generar avisos tácticos en vivo (con ID único para que la voz no repita) ──
