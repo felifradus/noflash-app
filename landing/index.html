@@ -116,6 +116,56 @@
     .feat-card h3 { font-size: 1.05rem; margin-bottom: 0.45rem; color: var(--text); }
     .feat-card p { font-size: 0.88rem; color: var(--muted); }
 
+    /* Live App Visual Preview Showcase */
+    .preview-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1.25rem;
+    }
+    .preview-card {
+      background: linear-gradient(160deg, rgba(13,27,46,0.95), rgba(6,14,28,0.98));
+      border: 1px solid rgba(200,155,60,0.38);
+      border-radius: 14px; padding: 1.25rem;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.55);
+    }
+    .preview-head {
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: 'Cinzel', serif; font-size: 0.86rem; color: var(--gold-l);
+      padding-bottom: 0.65rem; margin-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(200,155,60,0.22);
+    }
+    .pv-pill {
+      font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 800;
+      padding: 0.18rem 0.55rem; border-radius: 999px;
+      background: rgba(10,200,185,0.16); border: 1px solid rgba(10,200,185,0.45); color: #5eead4;
+    }
+    .pv-champ-row {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.55rem 0.65rem; border-radius: 10px;
+      background: rgba(9,20,40,0.85); border: 1px solid rgba(200,155,60,0.22);
+      margin-bottom: 0.5rem;
+    }
+    .pv-champ-row img {
+      width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold);
+    }
+    .pv-champ-row strong { display: block; font-size: 0.88rem; color: var(--text); }
+    .pv-champ-row span { font-size: 0.75rem; color: var(--muted); }
+    .pv-score {
+      margin-left: auto; font-weight: 800; font-size: 0.86rem; color: var(--gold-l);
+      background: rgba(200,155,60,0.18); padding: 0.22rem 0.55rem; border-radius: 8px;
+    }
+    .pv-tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.3rem; margin-top: 0.6rem; }
+    .pv-tile {
+      font-size: 0.66rem; font-weight: 800; text-align: center; padding: 0.45rem 0.2rem;
+      border-radius: 7px; color: #fff;
+    }
+    .pv-tile.g { background: rgba(22,163,74,0.82); border: 1px solid #4ade80; }
+    .pv-tile.y { background: rgba(217,119,6,0.82); border: 1px solid #fbbf24; }
+    .pv-tile.r { background: rgba(185,28,28,0.78); border: 1px solid #f87171; }
+    .pv-callout {
+      padding: 0.55rem 0.75rem; border-radius: 9px; font-size: 0.78rem; margin-top: 0.55rem;
+      background: rgba(10,200,185,0.12); border: 1px solid rgba(10,200,185,0.4); color: #ccfbf1;
+    }
+
     /* Pricing */
     .pricing-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -166,6 +216,56 @@
         <a href="https://github.com/felifradus/noflash-app/releases" target="_blank" class="btn-secondary"><i class="fa-brands fa-github"></i> <span data-k="cta_dc">View Releases &amp; Changelog</span></a>
       </div>
       <div class="hero-meta" data-k="meta">Windows 10 / 11 · 100% Riot API &amp; Vanguard Compliant · 9 Languages</div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title" data-k="pv_title">Inside NoFlash — Built for Real SoloQ</h2>
+      <div class="preview-grid">
+        <div class="preview-card">
+          <div class="preview-head"><span><i class="fa-solid fa-crown"></i> Live Draft Coach</span><span class="pv-pill">1-CLICK RUNES</span></div>
+          <div class="pv-champ-row">
+            <img src="https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/Jinx.png" alt="Jinx">
+            <div><strong>Jinx · Tier S+</strong><span>58.2% WR (97g) · Counter + Synergy</span></div>
+            <div class="pv-score">94</div>
+          </div>
+          <div class="pv-champ-row">
+            <img src="https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/Caitlyn.png" alt="Caitlyn">
+            <div><strong>Caitlyn · Tier S</strong><span>55.1% WR · Strong Lane Prio</span></div>
+            <div class="pv-score">89</div>
+          </div>
+          <div class="pv-callout"><i class="fa-solid fa-bolt"></i> Auto-imports Lethal Tempo + Flash / Cleanse into LoL Client</div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-head"><span><i class="fa-solid fa-binoculars"></i> Live 5v5 Scout &amp; Calm Voice</span><span class="pv-pill">IN-GAME</span></div>
+          <div class="pv-champ-row">
+            <img src="https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/LeeSin.png" alt="Lee Sin">
+            <div><strong>Enemy Lee Sin · Master 120 LP</strong><span>⚠️ Main Threat · 61% WR · 420k Mastery</span></div>
+          </div>
+          <div class="pv-champ-row">
+            <img src="https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/Yasuo.png" alt="Yasuo">
+            <div><strong>Enemy Yasuo · Diamond II</strong><span>🎯 Camp Target · 43% WR · First Time</span></div>
+          </div>
+          <div class="pv-callout"><i class="fa-solid fa-volume-low"></i> Calm Voice (55%): “Minimap check.” · “Drake in 1 min.”</div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-head"><span><i class="fa-solid fa-bolt"></i> Flashdle &amp; Queue Warm-Up</span><span class="pv-pill">173 CHAMPS</span></div>
+          <div class="pv-champ-row" style="margin-bottom:0.35rem;">
+            <img src="https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/Zed.png" alt="Zed">
+            <div><strong>Guess #1: Zed</strong><span>MID · AD · Melee · Energy · Assassin</span></div>
+          </div>
+          <div class="pv-tiles">
+            <div class="pv-tile r">Zed</div>
+            <div class="pv-tile g">MID</div>
+            <div class="pv-tile g">AD</div>
+            <div class="pv-tile g">Melee</div>
+            <div class="pv-tile r">Energy</div>
+            <div class="pv-tile y">Assassin</div>
+          </div>
+          <div class="pv-callout"><i class="fa-solid fa-trophy"></i> Daily Climb Streak + Rift Trophies + 20s Micro Aim</div>
+        </div>
+      </div>
     </section>
 
     <section class="section">
@@ -246,6 +346,7 @@
       cta_dl: 'Descargar Gratis para Windows (.exe)',
       cta_dc: 'Ver Releases y Novedades',
       meta: 'Windows 10 / 11 · 100% Legal ante Riot y Vanguard · 9 Idiomas',
+      pv_title: 'Así se ve NoFlash por dentro',
       feat_title: 'Por qué los jugadores eligen NoFlash',
       f1_t: 'Coach por Voz Neuronal',
       f1_p: 'Te habla los bans, mejores picks y si conviene Limpiar/Extenuar en Draft, más avisos de Dragón, Grubs, Barón, nivel 6 enemigo y ventanas de gank.',
