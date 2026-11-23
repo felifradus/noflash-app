@@ -562,9 +562,11 @@ async def import_lcu_setup(request: ImportSetupRequest) -> dict[str, Any]:
     )
 
 
+import re as _re
+
 NEURAL_VOICES: dict[str, str] = {
-    "es": "es-AR-ElenaNeural",
-    "en": "en-US-EmmaMultilingualNeural",
+    "es": "en-US-AvaMultilingualNeural",
+    "en": "en-US-AvaMultilingualNeural",
     "pt": "pt-BR-FranciscaNeural",
     "ko": "ko-KR-SunHiNeural",
     "fr": "fr-FR-DeniseNeural",
@@ -574,45 +576,86 @@ NEURAL_VOICES: dict[str, str] = {
     "tr": "tr-TR-EmelNeural",
 }
 
-# Perfiles de voz humana y estilos inspirados en campeones de LoL
+# Perfiles de voz ultra-humana (Multilingual Neural: pronuncian perfecto español + términos de LoL)
 VOICE_PERSONAS: dict[str, dict[str, Any]] = {
     "pro_f": {
-        "es": "es-AR-ElenaNeural",
-        "en": "en-US-EmmaMultilingualNeural",
-        "rate": "+1%",
+        "es": "en-US-AvaMultilingualNeural",
+        "en": "en-US-AvaMultilingualNeural",
+        "rate": "+0%",
         "pitch": "+0Hz",
     },
     "pro_m": {
-        "es": "es-AR-TomasNeural",
+        "es": "en-US-AndrewMultilingualNeural",
         "en": "en-US-AndrewMultilingualNeural",
-        "rate": "+1%",
-        "pitch": "-2Hz",
+        "rate": "+0%",
+        "pitch": "-1Hz",
     },
     "veigar": {
-        "es": "es-ES-AlvaroNeural",
+        "es": "en-US-BrianMultilingualNeural",
         "en": "en-GB-RyanNeural",
-        "rate": "+14%",
-        "pitch": "+28Hz",
+        "rate": "+12%",
+        "pitch": "+26Hz",
     },
     "heimer": {
-        "es": "es-ES-AlvaroNeural",
+        "es": "en-US-AndrewMultilingualNeural",
         "en": "en-GB-RyanNeural",
-        "rate": "+11%",
-        "pitch": "+13Hz",
+        "rate": "+10%",
+        "pitch": "+12Hz",
     },
     "jinx": {
-        "es": "es-MX-DaliaNeural",
+        "es": "en-US-EmmaMultilingualNeural",
         "en": "en-US-EmmaMultilingualNeural",
-        "rate": "+15%",
-        "pitch": "+14Hz",
+        "rate": "+13%",
+        "pitch": "+12Hz",
     },
     "mordekaiser": {
-        "es": "es-MX-JorgeNeural",
-        "en": "en-US-AndrewMultilingualNeural",
-        "rate": "-9%",
-        "pitch": "-18Hz",
+        "es": "en-US-BrianMultilingualNeural",
+        "en": "en-US-BrianMultilingualNeural",
+        "rate": "-10%",
+        "pitch": "-20Hz",
     },
 }
+
+_TTS_CHAMP_FIXES: dict[str, str] = {
+    "NoFlash": "No Flash",
+    "noflash": "No Flash",
+    "LeeSin": "Lee Sin",
+    "TwistedFate": "Twisted Fate",
+    "AurelionSol": "Aurelion Sol",
+    "MasterYi": "Master Yi",
+    "MissFortune": "Miss Fortune",
+    "JarvanIV": "Jarvan Four",
+    "KhaZix": "Kha'Zix",
+    "TahmKench": "Tahm Kench",
+    "XinZhao": "Xin Zhao",
+    "DrMundo": "Doctor Mundo",
+    "Chogath": "Cho'Gath",
+    "Belveth": "Bel'Veth",
+    "KogMaw": "Kog'Maw",
+    "RekSai": "Rek'Sai",
+    "Velkoz": "Vel'Koz",
+    "Kaisa": "Kai'Sa",
+    "KSante": "K'Sante",
+    "Renata": "Renata Glasc",
+    "MonkeyKing": "Wukong",
+}
+
+
+def _polish_tts_text(text: str, lang_key: str) -> str:
+    """Pule pronunciación de marca, campeones y siglas de LoL para que suene 100% natural."""
+    out = (text or "").strip()[:400]
+    for src, dst in _TTS_CHAMP_FIXES.items():
+        out = _re.sub(rf"\b{_re.escape(src)}\b", dst, out, flags=_re.IGNORECASE)
+    if lang_key == "es":
+        out = _re.sub(r"\bsu R\b", "su ulti", out)
+        out = _re.sub(r"\bWR\b", "win rate", out)
+        out = _re.sub(r"\bHP\b", "vida", out)
+    else:
+        out = _re.sub(r"\bWR\b", "win rate", out)
+    # Quitar emojis/símbolos que cortan el ritmo natural
+    out = _re.sub(r"[^\w\s.,!?¡¿áéíóúÁÉÍÓÚñÑüÜ'%-]", " ", out)
+    out = _re.sub(r"\s+", " ", out).strip()
+    return out
 
 
 _TTS_CACHE: dict[tuple[str, str, str], bytes] = {}
@@ -621,11 +664,11 @@ _TTS_CACHE_MAX = 96
 
 @app.get("/api/tts")
 async def text_to_speech(text: str, lang: str = "es", persona: str = "pro_f") -> Response:
-    """Genera audio MP3 con voz neuronal natural (edge-tts) + selector de personaje."""
-    clean_text = (text or "").strip()[:400]
+    """Genera audio MP3 con voz neuronal ultra-humana (edge-tts) + selector de personaje."""
+    lang_key = (lang or "es").lower()
+    clean_text = _polish_tts_text(text, lang_key)
     if not clean_text:
         raise HTTPException(status_code=400, detail="Texto vacío.")
-    lang_key = (lang or "es").lower()
     persona_key = (persona or "pro_f").lower()
     if persona_key not in VOICE_PERSONAS:
         persona_key = "pro_f"
@@ -635,8 +678,8 @@ async def text_to_speech(text: str, lang: str = "es", persona: str = "pro_f") ->
         return Response(content=_TTS_CACHE[cache_key], media_type="audio/mpeg")
 
     cfg = VOICE_PERSONAS[persona_key]
-    voice = cfg.get(lang_key) or (cfg["en"] if lang_key != "es" and persona_key != "pro_f" else NEURAL_VOICES.get(lang_key, "en-US-EmmaMultilingualNeural"))
-    rate = cfg.get("rate", "+1%")
+    voice = cfg.get(lang_key) or (cfg["en"] if lang_key != "es" and persona_key != "pro_f" else NEURAL_VOICES.get(lang_key, "en-US-AvaMultilingualNeural"))
+    rate = cfg.get("rate", "+0%")
     pitch = cfg.get("pitch", "+0Hz")
     try:
         import edge_tts
