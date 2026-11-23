@@ -4335,10 +4335,6 @@ body {
   box-shadow: 0 0 10px rgba(246, 211, 101, 0.4);
 }
 
-.win-btn.win-close {
-  border-color: rgba(233, 69, 96, 0.4);
-}
-
 .win-btn.win-close:hover {
   background: linear-gradient(180deg, #e94560, #b91c1c);
   border-color: #fda4af;
