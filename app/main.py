@@ -112,9 +112,19 @@ def _get_api_key() -> str | None:
     return key
 
 
+DEFAULT_CLOUD_URL = "https://noflash-app.onrender.com"
+
+
 def _get_cloud_url() -> str | None:
-    """URL opcional del servidor central de NoFlash en la nube (para usuarios sin API key)."""
-    url = os.environ.get("NoFlash_CLOUD_URL", "").strip().rstrip("/")
+    """URL del servidor central de NoFlash en la nube (para usuarios sin API key local)."""
+    # Evitar loop si estamos corriendo dentro del propio servidor Render
+    if os.environ.get("RENDER"):
+        return None
+    url = (
+        os.environ.get("NOFLASH_CLOUD_URL")
+        or os.environ.get("NoFlash_CLOUD_URL")
+        or DEFAULT_CLOUD_URL
+    ).strip().rstrip("/")
     return url or None
 
 
@@ -430,8 +440,24 @@ async def live_scout_match(request: LiveScoutRequest) -> dict[str, Any]:
         return _SCOUT_CACHE[sig]
 
     api_key = _get_api_key()
+    cloud_url = _get_cloud_url()
+    if not api_key and cloud_url:
+        try:
+            async with httpx.AsyncClient(timeout=45.0) as proxy:
+                resp = await proxy.post(
+                    f"{cloud_url}/api/live-scout",
+                    json=request.model_dump(),
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if len(_SCOUT_CACHE) >= 12:
+                        _SCOUT_CACHE.pop(next(iter(_SCOUT_CACHE)))
+                    _SCOUT_CACHE[sig] = data
+                    return data
+        except Exception as e:
+            logger.warning(f"Live scout cloud proxy error: {e}")
     if not api_key:
-        raise HTTPException(status_code=503, detail="RIOT_API_KEY no configurada.")
+        raise HTTPException(status_code=503, detail="RIOT_API_KEY not configured.")
 
     # Mapa normalizado nombre campeón -> championId para buscar maestría exacta
     from app.data.counter_data import CHAMPION_ID_TO_NAME
