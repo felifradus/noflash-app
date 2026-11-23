@@ -1772,7 +1772,7 @@ class PlayerAnalyzer:
         if gp:
             if not gp.get("ready"):
                 gp["status_label"] = f"Waiting for picks ({len(ally_picks) + len(enemy_picks)}/10)"
-                gp["win_condition"] = "Once more draft picks lock in, RiftMind will build your full in-game plan (Early, Teamfights & Itemization)."
+                gp["win_condition"] = "Once more draft picks lock in, NoFlash will build your full in-game plan (Early, Teamfights & Itemization)."
             else:
                 gp["status_label"] = "Draft complete — Gameplan ready" if gp.get("is_complete") else f"Early plan ({len(ally_picks) + len(enemy_picks)}/10 picks)"
                 gp["win_condition"] = "Play around 5v5 objective fights (Drake/Baron) and leverage your team's core scaling and engage."
