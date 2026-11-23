@@ -323,11 +323,11 @@ class LiveGameMonitor:
         # ── Generar avisos tácticos en vivo (con ID único para que la voz no repita) ──
         alerts: list[dict[str, str]] = []
         is_en = (lang or "es").lower() != "es"
+        my_champ_name = (my_entry or {}).get("championName", "")
+        my_pos_name = ((my_entry or {}).get("position") or "").upper()
 
         # 0. Plan táctico de inicio de línea (0:15 – 2:35) según tu campeón, rol y matchup
         if 15 <= game_time <= 155:
-            my_champ_name = (my_entry or {}).get("championName", "")
-            my_pos_name = (my_entry or {}).get("position", "")
             lp_title, lp_msg = _build_early_lane_plan(my_champ_name, my_pos_name, enemies, is_en)
             alerts.append({
                 "id": "early_lane_plan",
@@ -336,55 +336,76 @@ class LiveGameMonitor:
                 "message": lp_msg,
             })
 
-        # 1. Timers clave de objetivos y ventanas de gank/roam (100% legal por reloj oficial)
-        if 170 <= game_time <= 195:
+        # 1. Timers clave de objetivos adaptados a tu ROL (timers oficiales actuales)
+        if 170 <= game_time <= 195 and my_pos_name != "JUNGLE":
             alerts.append({
                 "id": "jg_first_clear",
                 "type": "warning",
                 "title": "1st Gank Window (3:00)" if is_en else "Ventana de 1er gank (Min 3:00)",
-                "message": "Watch out: the enemy jungler is finishing their first clear. Ward river now." if is_en else "Ojo: el jungla enemigo está terminando su primer clear. Revisá el río y poné un ward.",
+                "message": "Enemy jungler finishing first clear — drop a river ward." if is_en else "Jungla enemigo terminando primer clear — poné ward en el río.",
             })
-        if 250 <= game_time <= 295:
+        if 255 <= game_time <= 290:
+            if my_pos_name == "TOP":
+                drake_msg = (
+                    "First Drake at 5:00 — enemy jungler is likely botside; pressure top or watch TP."
+                    if is_en else
+                    "Primer Dragón al 5:00 — el jungla rival puede estar en bot; presioná top o revisá TP."
+                )
+            else:
+                drake_msg = (
+                    "First Drake at 5:00 — push wave and prep bot river vision."
+                    if is_en else
+                    "Primer Dragón al 5:00 — empujá oleada y prepará visión en el río de bot."
+                )
             alerts.append({
                 "id": "obj_first_drake",
                 "type": "objective",
-                "title": "First Drake spawning soon" if is_en else "Primer Dragón en breve",
-                "message": "First Drake spawns in under a minute. Push your wave and set up river vision." if is_en else "En menos de un minuto sale el primer Dragón. Empujá oleada y prepará visión en el río.",
+                "title": "First Drake (5:00)" if is_en else "Primer Dragón (5:00)",
+                "message": drake_msg,
             })
-        if 310 <= game_time <= 355:
+        if 435 <= game_time <= 470:
+            if my_pos_name == "BOTTOM":
+                grubs_msg = (
+                    "Voidgrubs spawn at 8:00 — play safe if your support roams, or pressure bot plates."
+                    if is_en else
+                    "Grubs al 8:00 — jugá seguro si tu support rota, o presioná placas en bot."
+                )
+            elif my_pos_name == "UTILITY":
+                grubs_msg = (
+                    "Voidgrubs at 8:00 — look for a roam timer if your ADC is safe."
+                    if is_en else
+                    "Grubs al 8:00 — buscá ventana de roam a top si tu ADC queda seguro."
+                )
+            else:
+                grubs_msg = (
+                    "Voidgrubs spawn at 8:00 — push your wave and prep top river."
+                    if is_en else
+                    "Grubs al 8:00 — empujá tu oleada y prepará el río de top."
+                )
             alerts.append({
                 "id": "obj_grubs",
                 "type": "objective",
-                "title": "Voidgrubs spawning soon" if is_en else "Larvas del Vacío (Grubs)",
-                "message": "Voidgrubs spawn shortly. Secure top and mid lane prio." if is_en else "Las Larvas del Vacío salen en breve. Asegurá prioridad en top y mid.",
+                "title": "Voidgrubs (8:00)" if is_en else "Larvas del Vacío (8:00)",
+                "message": grubs_msg,
             })
-        if 360 <= game_time <= 390:
-            alerts.append({
-                "id": "roam_check_6m",
-                "type": "warning",
-                "title": "Jungle & Mid check (6:00)" if is_en else "Chequeo de Jungla y Mid (Min 6)",
-                "message": "Check minimap: if enemy jungle or mid has been missing, watch out for a gank or roam." if is_en else "Revisá el minimapa: si hace un rato no ves al jungla o al mid enemigo, tené cuidado con un posible gank o roam.",
-            })
-        if 540 <= game_time <= 575:
-            alerts.append({
-                "id": "roam_check_9m",
-                "type": "warning",
-                "title": "Roam & Rotation check (9:00)" if is_en else "Alerta de rotaciones (Min 9)",
-                "message": "Check minimap: don't overextend without vision if enemy jungle or solo laners are missing." if is_en else "Chequeá el minimapa: si no viste al jungla, mid o top enemigo hace un rato, no te extiendas sin visión.",
-            })
-        if 750 <= game_time <= 785:
-            alerts.append({
-                "id": "roam_check_12m",
-                "type": "warning",
-                "title": "Watch flanks & roams" if is_en else "Cuidado con flancos y roams",
-                "message": "Map reminder: confirm where enemy jungle and mid are before pushing out." if is_en else "Recordatorio de mapa: verificá dónde están el jungla y el mid rival antes de empujar la oleada.",
-            })
-        if 790 <= game_time <= 835:
+        if 855 <= game_time <= 890:
+            if my_pos_name == "BOTTOM":
+                herald_msg = (
+                    "Rift Herald at 15:00 — rotate mid if bot tower is down, or play safe weakside."
+                    if is_en else
+                    "Heraldo al 15:00 — rotá a mid si ya cayó torre de bot, o jugá seguro en weakside."
+                )
+            else:
+                herald_msg = (
+                    "Rift Herald spawns at 15:00 — control top river vision."
+                    if is_en else
+                    "Heraldo al 15:00 — controlá la visión del río de top."
+                )
             alerts.append({
                 "id": "obj_herald",
                 "type": "objective",
-                "title": "Rift Herald spawning" if is_en else "Heraldo de la Grieta",
-                "message": "Rift Herald is about to spawn. Control top-side river vision." if is_en else "El Heraldo está por salir. Controlá la visión de top side.",
+                "title": "Rift Herald (15:00)" if is_en else "Heraldo de la Grieta (15:00)",
+                "message": herald_msg,
             })
         if 1150 <= game_time <= 1195:
             alerts.append({
