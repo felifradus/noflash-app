@@ -117,11 +117,11 @@ class RiotAPIClient:
                     await asyncio.sleep(espera)
                     continue
 
-                if response.status_code == 403:
+                if response.status_code in (401, 403):
                     raise RiotAPIError(
-                        "API Key inválida o expirada. "
-                        "Verificá tu clave en https://developer.riotgames.com/",
-                        status_code=403,
+                        "La Riot API Key expiró (las claves Dev duran 24 hs). "
+                        "Regenerala en https://developer.riotgames.com/ y actualizala en Render (RIOT_API_KEY).",
+                        status_code=response.status_code,
                     )
 
                 if response.status_code == 404:
