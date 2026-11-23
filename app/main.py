@@ -67,8 +67,8 @@ class AnalyzeRequest(BaseModel):
     game_name: str
     tag_line: str
     region: str = "americas"
-    platform: str = "la2"
-    lang: str = "es"
+    platform: str = "na1"
+    lang: str = "en"
 
 
 class DraftRequest(BaseModel):
@@ -77,7 +77,7 @@ class DraftRequest(BaseModel):
     enemy_picks: list[str] = []
     bans: list[str] = []
     role: str = "MID"
-    lang: str = "es"
+    lang: str = "en"
 
 
 class ImportSetupRequest(BaseModel):
@@ -342,7 +342,7 @@ async def get_lcu_champ_select() -> dict[str, Any]:
 
 
 @app.get("/api/live-game")
-async def get_live_game(lang: str = "es") -> dict[str, Any]:
+async def get_live_game(lang: str = "en") -> dict[str, Any]:
     """Lee el estado oficial In-Game (127.0.0.1:2999) cuando hay una partida en curso."""
     return await live_game_monitor.get_live_state(lang=lang)
 
@@ -357,8 +357,8 @@ class LiveScoutPlayer(BaseModel):
 
 
 class LiveScoutRequest(BaseModel):
-    platform: str = "la2"
-    lang: str = "es"
+    platform: str = "na1"
+    lang: str = "en"
     players: list[LiveScoutPlayer] = Field(default_factory=list)
 
 
@@ -639,9 +639,9 @@ _TTS_CACHE_MAX = 96
 
 
 @app.get("/api/tts")
-async def text_to_speech(text: str, lang: str = "es", persona: str = "pro_f") -> Response:
+async def text_to_speech(text: str, lang: str = "en", persona: str = "pro_f") -> Response:
     """Genera audio MP3 con voz neuronal ultra-humana (edge-tts) + selector de personaje."""
-    lang_key = (lang or "es").lower()
+    lang_key = (lang or "en").lower()
     clean_text = _polish_tts_text(text, lang_key)
     if not clean_text:
         raise HTTPException(status_code=400, detail="Texto vacío.")

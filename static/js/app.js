@@ -1656,6 +1656,164 @@ class DraftAnalyzer {
     pollLive();
     setInterval(pollLive, 3000);
     setInterval(() => this._tickSpellTimers(), 1000);
+    this.initHabitReminders();
+  }
+
+  /* ── Custom In-Game Voice Habit Reminders (Minimap, Wards, Tempo, Mental, Custom) ── */
+  initHabitReminders() {
+    const listEl = document.getElementById('habit-list');
+    if (!listEl) return;
+
+    const STORAGE_KEY = 'NoFlash_habit_reminders_v1';
+    const DIALOGUES = {
+      minimap: {
+        en: [
+          'Quick minimap check — where is the enemy jungler?',
+          'Glance at your minimap before pushing up.',
+          'Check the minimap: are enemy laners missing?',
+          'Eyes on the minimap. Track jungle and mid.',
+        ],
+        es: [
+          'Chequeo rápido de minimapa: ¿dónde está el jungla enemigo?',
+          'Mirá el minimapa antes de empujar la oleada.',
+          'Ojo con el minimapa: ¿falta algún rival en línea?',
+        ],
+      },
+      wards: {
+        en: [
+          'Check your ward charges and drop river vision.',
+          'Place a ward before extending past river.',
+          'Remember to grab a Control Ward on your next reset.',
+        ],
+        es: [
+          'Revisá tus wards y poné visión en el río.',
+          'Poné un ward antes de extenderte en línea.',
+        ],
+      },
+      tempo: {
+        en: [
+          'Check your gold and wave state — look for a clean recall.',
+          'Crash your wave before recalling so you do not lose CS.',
+          'Check objective timers and spend your gold before fighting.',
+        ],
+        es: [
+          'Revisá tu oro y la oleada para buscar un buen back.',
+          'Empujá la oleada antes de backear para no perder farm.',
+        ],
+      },
+      mental: {
+        en: [
+          'Deep breath. Reset your focus and play the next wave clean.',
+          'Stay calm, ignore chat, and play your win condition.',
+        ],
+        es: [
+          'Respirá hondo, reseteá el foco y jugá limpio la próxima oleada.',
+          'Calma, ignorá el chat y jugá a tu win condition.',
+        ],
+      },
+    };
+
+    const defaults = {
+      minimap: { enabled: true, interval: 60 },
+      wards: { enabled: true, interval: 120 },
+      tempo: { enabled: true, interval: 180 },
+      mental: { enabled: false, interval: 300 },
+      custom: { enabled: false, interval: 90, text: '' },
+    };
+
+    let cfg = defaults;
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (saved) cfg = { ...defaults, ...saved };
+    } catch {}
+
+    const saveCfg = () => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch {}
+    };
+
+    const lastFired = {};
+    const dialogueIdx = {};
+    const getPhrase = (key) => {
+      const lang = (typeof getCurrentLang === 'function' && getCurrentLang() === 'es') ? 'es' : 'en';
+      if (key === 'custom') {
+        const txt = (cfg.custom?.text || '').trim();
+        return txt || (lang === 'es' ? 'Recordatorio personalizado de No Flash.' : 'Custom No Flash reminder.');
+      }
+      const arr = (DIALOGUES[key] && DIALOGUES[key][lang]) || DIALOGUES[key]?.en || [];
+      if (arr.length === 0) return '';
+      const i = (dialogueIdx[key] || 0) % arr.length;
+      dialogueIdx[key] = i + 1;
+      return arr[i];
+    };
+
+    const customInput = document.getElementById('habit-custom-text');
+    if (customInput) {
+      customInput.value = cfg.custom?.text || '';
+      customInput.addEventListener('input', () => {
+        cfg.custom.text = customInput.value;
+        saveCfg();
+      });
+    }
+
+    listEl.querySelectorAll('.habit-row').forEach(row => {
+      const key = row.dataset.habit;
+      const cb = row.querySelector('.habit-cb');
+      const sel = row.querySelector('.habit-interval');
+      const testBtn = row.querySelector('.btn-habit-test');
+      if (!key || !cfg[key]) return;
+
+      if (cb) {
+        cb.checked = !!cfg[key].enabled;
+        cb.addEventListener('change', () => {
+          cfg[key].enabled = cb.checked;
+          lastFired[key] = Date.now();
+          saveCfg();
+        });
+      }
+      if (sel) {
+        sel.value = String(cfg[key].interval || 60);
+        sel.addEventListener('change', () => {
+          cfg[key].interval = parseInt(sel.value, 10) || 60;
+          lastFired[key] = Date.now();
+          saveCfg();
+        });
+      }
+      if (testBtn) {
+        testBtn.addEventListener('click', () => {
+          const phrase = getPhrase(key);
+          if (phrase && window.voiceCoach) {
+            window.voiceCoach.speak(phrase, { force: true });
+          }
+        });
+      }
+    });
+
+    // Solo dispara recordatorios mientras hay una partida de LoL activa (min > 1:30)
+    setInterval(() => {
+      if (!this.liveInGameWasActive || !window.voiceCoach || !window.voiceCoach.isEnabled()) return;
+      const gTime = this.lastLiveState?.game_time || 0;
+      if (gTime < 90) return;
+
+      const now = Date.now();
+      for (const key of ['minimap', 'wards', 'tempo', 'mental', 'custom']) {
+        const item = cfg[key];
+        if (!item || !item.enabled) continue;
+        if (key === 'custom' && !(item.text || '').trim()) continue;
+        const intervalMs = Math.max(30, Number(item.interval) || 60) * 1000;
+        if (!lastFired[key]) {
+          lastFired[key] = now;
+          continue;
+        }
+        if (now - lastFired[key] >= intervalMs) {
+          lastFired[key] = now;
+          const phrase = getPhrase(key);
+          if (phrase) {
+            window.voiceCoach.speak(phrase, { force: false });
+          }
+          break; // Máximo 1 recordatorio por ciclo para no pisarse
+        }
+      }
+    }, 5000);
   }
 
   /* ── Scouting en vivo de los 10 jugadores (Aliados + Rivales) ── */

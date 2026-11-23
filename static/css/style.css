@@ -3843,3 +3843,90 @@ body {
 .scout-tag.good { background: rgba(46, 204, 113, 0.18); color: #86efac; border: 1px solid rgba(46, 204, 113, 0.4); }
 .scout-tag.warn { background: rgba(245, 158, 11, 0.18); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
 .scout-tag.bad  { background: rgba(233, 69, 96, 0.2);  color: #fda4af; border: 1px solid rgba(233, 69, 96, 0.45); }
+
+/* ── Custom In-Game Voice Habit Reminders ── */
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: rgba(9, 20, 40, 0.78);
+  border: 1px solid rgba(200, 155, 60, 0.24);
+}
+
+.habit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f0e6d2;
+  cursor: pointer;
+}
+
+.habit-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #c89b3c;
+  cursor: pointer;
+}
+
+.habit-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.habit-interval {
+  background: #07101e;
+  color: #f0e6d2;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  border-radius: 7px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.habit-custom-input {
+  flex: 1;
+  min-width: 220px;
+  background: #07101e;
+  color: #f0e6d2;
+  border: 1px solid rgba(200, 155, 60, 0.32);
+  border-radius: 7px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.habit-custom-input:focus {
+  outline: none;
+  border-color: #0ac8b9;
+}
+
+.btn-habit-test {
+  background: rgba(10, 200, 185, 0.14);
+  border: 1px solid rgba(10, 200, 185, 0.42);
+  color: #ccfbf1;
+  border-radius: 7px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-habit-test:hover {
+  background: rgba(200, 155, 60, 0.24);
+  border-color: #c89b3c;
+  color: #fff;
+}

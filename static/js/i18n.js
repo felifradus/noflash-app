@@ -38,6 +38,15 @@ const TRANSLATIONS = {
     ig_scout_sub: 'Rango SoloQ, Win Rate, Maestría en el campeón actual y amenazas/targets.',
     ig_rescout: 'Re-escanear',
     ig_scout_loading: 'Analizando a los 10 jugadores de la partida...',
+    hab_title: 'Recordatorios de Hábitos por Voz (Personalizables)',
+    hab_sub: 'Elegí cada cuántos segundos NoFlash te recuerda mirar el mapa, poner wards o resetear (solo habla durante partidas activas).',
+    hab_minimap: '🗺️ Mirar el Minimapa',
+    hab_wards: '👁️ Visión & Wards',
+    hab_tempo: '💰 Oro, Oleada & Reset',
+    hab_mental: '🧘 Respirar & Anti-Tilt',
+    hab_custom: '✏️ Recordatorio Personalizado',
+    hab_custom_ph: 'Escribí tu propia frase (ej: Trackear Flash enemigo y cuidar posición)',
+    hab_test: 'Probar',
     coach_badge_prefix: 'Últimas', coach_badge_suffix: 'partidas + Maestría',
     bar_farm: '🌾 Farmeo', bar_dmg: '💥 Daño / min', bar_kp: '⚔️ Participación', bar_surv: '🛡️ Supervivencia',
     deaths_per_g: 'muertes/p',
@@ -97,6 +106,15 @@ const TRANSLATIONS = {
     ig_scout_sub: 'SoloQ Rank, Win Rate, Mastery on current champion & key threats/targets.',
     ig_rescout: 'Rescout',
     ig_scout_loading: 'Scouting all 10 players in this match...',
+    hab_title: 'Custom In-Game Voice Reminders',
+    hab_sub: 'Choose how often NoFlash reminds you to glance at the minimap, ward, or reset (only speaks during live matches).',
+    hab_minimap: '🗺️ Minimap Check',
+    hab_wards: '👁️ Vision & Wards',
+    hab_tempo: '💰 Gold, Wave & Reset',
+    hab_mental: '🧘 Breathe & Anti-Tilt',
+    hab_custom: '✏️ Custom Reminder',
+    hab_custom_ph: 'Type your own callout (e.g. Track enemy Flash and stay behind frontline)',
+    hab_test: 'Test',
     coach_badge_prefix: 'Last', coach_badge_suffix: 'games + Mastery',
     bar_farm: '🌾 Farming', bar_dmg: '💥 Damage / min', bar_kp: '⚔️ Kill Participation', bar_surv: '🛡️ Survivability',
     deaths_per_g: 'deaths/g',
@@ -341,9 +359,8 @@ const TRANSLATIONS = {
 function getCurrentLang() {
   const saved = localStorage.getItem('lol_draft_lang');
   if (saved && TRANSLATIONS[saved]) return saved;
-  // Auto-detectar idioma del sistema (NA/EUW -> EN, LATAM -> ES, BR -> PT, etc.)
-  const sysLang = (navigator.language || 'en').toLowerCase().slice(0, 2);
-  return TRANSLATIONS[sysLang] ? sysLang : 'en';
+  // Idioma principal de NoFlash: Inglés (EN) por defecto
+  return 'en';
 }
 
 function t(key) {
