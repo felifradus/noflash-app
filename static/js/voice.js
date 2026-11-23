@@ -87,7 +87,11 @@ class VoiceCoach {
     if (dedupeId && this.spokenIds.has(dedupeId)) return;
 
     const now = Date.now();
-    if (!force && text === this.lastSpokenText && now - this.lastSpokenAt < 15000) {
+    // Anti-spam: mínimo 18s entre avisos automáticos para que no hable encima ni repita
+    if (!force && now - this.lastSpokenAt < 18000) {
+      return;
+    }
+    if (!force && text === this.lastSpokenText && now - this.lastSpokenAt < 60000) {
       return;
     }
 

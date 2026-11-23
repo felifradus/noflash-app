@@ -40,6 +40,26 @@ ARMOR_KEYWORDS = ("plate", "mail", "randuin", "frozen", "zhonya", "death's dance
 MR_KEYWORDS = ("maw", "wit's end", "force of nature", "spirit visage", "kaenic", "banshee", "mercury", "fauces", "rostro", "velo", "mercurio")
 
 
+# Campeones cuya R al nivel 6 es amenaza de largo alcance / ejecución (no all-in cuerpo a cuerpo)
+LONG_RANGE_ULT_CHAMPS = {
+    "caitlyn", "jinx", "ezreal", "ashe", "draven", "karthus", "senna",
+    "lux", "xerath", "ziggs", "jhin", "twistedfate", "shen", "pantheon",
+    "galio", "briar", "gangplank", "soraka", "kaisa",
+}
+
+# Campeones cuya R al nivel 6 es un spike real de all-in / engage letal
+ALL_IN_ULT_CHAMPS = {
+    "zed", "malphite", "leona", "nautilus", "rengar", "vi", "fizz", "diana",
+    "pyke", "amumu", "kennen", "annie", "yasuo", "yone", "akali", "talon",
+    "darius", "mordekaiser", "camille", "hecarim", "nocturne", "jarvaniv",
+    "alistar", "rell", "rakan", "skarner", "warwick", "syndra", "veigar",
+    "lissandra", "ahri", "leblanc", "katarina", "irelia", "riven", "renekton",
+    "garen", "sett", "tristana", "samira", "lucian", "twitch", "kassadin",
+    "ekko", "evelynn", "khazix", "leesin", "qiyana", "naafiri", "sylas",
+    "vex", "neeko", "fiddlesticks", "zac", "sejuani", "ornn", "wukong",
+}
+
+
 def _spell_cooldown(display_name: str) -> int:
     low = (display_name or "").lower()
     for key, cd in SPELL_BASE_COOLDOWNS.items():
@@ -223,14 +243,23 @@ class LiveGameMonitor:
                 "message": "Baron spawns in under a minute. Buy Control Wards and avoid getting picked off." if is_en else "Falta menos de un minuto para Barón. Comprá Control Wards y no regales picks aislados.",
             })
 
-        # 2. Spikes de Nivel 6 enemigos
-        for threat in lv6_threats[:2]:
-            alerts.append({
-                "id": f"lv6_{threat}",
-                "type": "warning",
-                "title": f"{threat} hit Level 6" if is_en else f"{threat} llegó a Nivel 6",
-                "message": f"Watch out: {threat} just unlocked their ultimate. Respect their all-in range." if is_en else f"Ojo: {threat} acaba de desbloquear su definitiva. Respetá su rango de all-in.",
-            })
+        # 2. Spikes de Nivel 6 enemigos (solo amenazas reales y con mensaje acorde al campeón)
+        for threat in lv6_threats[:1]:
+            norm_t = "".join(ch for ch in threat.lower() if ch.isalnum())
+            if norm_t in LONG_RANGE_ULT_CHAMPS:
+                alerts.append({
+                    "id": f"lv6_{norm_t}",
+                    "type": "warning",
+                    "title": f"{threat} hit Level 6 (Long-range R)" if is_en else f"{threat} llegó a Nivel 6 (R de largo alcance)",
+                    "message": f"Watch out: {threat} has their long-range ultimate. Don't stay low HP." if is_en else f"Ojo: {threat} ya tiene su R de largo alcance. Cuidado si te quedás con poca vida.",
+                })
+            elif norm_t in ALL_IN_ULT_CHAMPS:
+                alerts.append({
+                    "id": f"lv6_{norm_t}",
+                    "type": "warning",
+                    "title": f"{threat} hit Level 6 (All-in)" if is_en else f"{threat} llegó a Nivel 6 (All-in)",
+                    "message": f"Watch out: {threat} just unlocked their ultimate. Respect their engage." if is_en else f"Ojo: {threat} acaba de subir a nivel 6. Respetá su engage.",
+                })
 
         # 3. Alertas de itemización enemiga
         if armor_items >= 3:
