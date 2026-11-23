@@ -1838,6 +1838,10 @@ class DraftAnalyzer {
         en: ['Check your gold.', 'Look for a clean reset.', 'Crash wave before reset.'],
         es: ['Revisá tu oro.', 'Buscá un buen back.'],
       },
+      water: {
+        en: ['Take a quick sip of water.', 'Hydration check — drink some water.'],
+        es: ['Tomá un sorbo de agua.', 'Recordatorio: hidratate un poco.'],
+      },
       mental: {
         en: ['Deep breath. Stay focused.', 'Calm reset. Next wave clean.'],
         es: ['Respirá hondo. Mantené el foco.', 'Calma y a jugar limpio.'],
@@ -1848,6 +1852,7 @@ class DraftAnalyzer {
       minimap: { enabled: true, interval: 60 },
       wards: { enabled: true, interval: 120 },
       tempo: { enabled: true, interval: 180 },
+      water: { enabled: true, interval: 600 },
       mental: { enabled: false, interval: 300 },
       custom: { enabled: false, interval: 90, text: '' },
     };
@@ -1926,7 +1931,7 @@ class DraftAnalyzer {
       if (gTime < 90) return;
 
       const now = Date.now();
-      for (const key of ['minimap', 'wards', 'tempo', 'mental', 'custom']) {
+      for (const key of ['minimap', 'wards', 'tempo', 'water', 'mental', 'custom']) {
         const item = cfg[key];
         if (!item || !item.enabled) continue;
         if (key === 'custom' && !(item.text || '').trim()) continue;
