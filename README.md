@@ -1,4 +1,4 @@
-# RiftMind — Live LoL Coach
+# NoFlash — Live LoL Coach
 
 Aplicación de escritorio nativa para Windows (sin Overwolf) que analiza el historial real de un jugador de League of Legends, recomienda bans/picks/runas/hechizos en tiempo real durante el Draft, acompaña In-Game por voz neuronal y ofrece mini-juegos de Warm-Up para la cola.
 
@@ -56,4 +56,4 @@ lol-draft-analyzer/
 - **Siguientes hitos técnicos:**
   1. Empaquetar como instalador `.exe` (PyInstaller / Electron).
   2. Subir el backend de Riot API a la nube con una **Production API Key** de Riot para que los usuarios finales no necesiten API Key.
-  3. Crear landing page (`riftmind.gg`) y lanzar beta usando el kit de redes (`@riftmindgg`).
+  3. Crear landing page (`NoFlash.gg`) y lanzar beta usando el kit de redes (`@NoFlashgg`).

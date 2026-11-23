@@ -15,7 +15,7 @@ from typing import Any, Optional
 
 def _default_db_path() -> Path:
     if getattr(sys, "frozen", False):
-        base = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "RiftMind"
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "NoFlash"
         return base / "match_cache.db"
     return Path(__file__).resolve().parent / "data" / "match_cache.db"
 

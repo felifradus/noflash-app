@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════════════
-   RiftMind — Voice Coach (Voz Neuronal Real vía /api/tts)
+   NoFlash — Voice Coach (Voz Neuronal Real vía /api/tts)
    Usa edge-tts (Elena AR, Aria US, Francisca BR, etc.) en HTML5 Audio
    ═══════════════════════════════════════════════════════ */
 
 class VoiceCoach {
   constructor() {
-    this.enabled = localStorage.getItem('riftmind_voice_enabled') !== 'false';
+    this.enabled = localStorage.getItem('NoFlash_voice_enabled') !== 'false';
     this.spokenIds = new Set();
     this.lastSpokenText = '';
     this.lastSpokenAt = 0;
@@ -18,7 +18,7 @@ class VoiceCoach {
 
   toggle() {
     this.enabled = !this.enabled;
-    localStorage.setItem('riftmind_voice_enabled', String(this.enabled));
+    localStorage.setItem('NoFlash_voice_enabled', String(this.enabled));
     if (!this.enabled) {
       this.stop();
     }

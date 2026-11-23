@@ -1470,7 +1470,7 @@ class DraftAnalyzer {
         const on = window.voiceCoach.toggle();
         syncVoiceUI();
         if (on) {
-          window.voiceCoach.speak('Coach por voz de RiftMind activado.', { force: true });
+          window.voiceCoach.speak('Coach por voz de NoFlash activado.', { force: true });
         }
       });
     }
@@ -1492,8 +1492,8 @@ class DraftAnalyzer {
         if (!window.voiceCoach) return;
         const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'es';
         const msg = lang === 'es'
-          ? 'Hola, soy tu Coach de RiftMind. Durante el draft te digo qué banear y qué pickear, y en partida te aviso los objetivos y las ventanas de gankeo.'
-          : 'Hey, I am your RiftMind Coach. During draft I call out bans and best picks, and in-game I track objectives and enemy spikes for you.';
+          ? 'Hola, soy tu Coach de NoFlash. Durante el draft te digo qué banear y qué pickear, y en partida te aviso los objetivos y las ventanas de gankeo.'
+          : 'Hey, I am your NoFlash Coach. During draft I call out bans and best picks, and in-game I track objectives and enemy spikes for you.';
         window.voiceCoach.speak(msg, { force: true });
       });
     }

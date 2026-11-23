@@ -273,7 +273,7 @@ class LCUClient:
         self, champion: str, keystone: str, spells: list[str]
     ) -> dict[str, Any]:
         """
-        Importa en 1 click la página de runas (RiftMind: {champion}) y,
+        Importa en 1 click la página de runas (NoFlash: {champion}) y,
         si el jugador está en Champ Select, también los 2 hechizos de invocador.
         """
         if not self._discover_credentials():
@@ -287,10 +287,10 @@ class LCUClient:
         runes_ok = False
         status_pages, pages = await self._lcu_request("GET", "/lol-perks/v1/pages")
         if status_pages == 200 and isinstance(pages, list):
-            # Borrar página anterior de RiftMind o la actual si es editable para no llenar el límite
+            # Borrar página anterior de NoFlash o la actual si es editable para no llenar el límite
             target_delete = None
             for p in pages:
-                if p.get("isEditable") and str(p.get("name", "")).startswith("RiftMind"):
+                if p.get("isEditable") and str(p.get("name", "")).startswith("NoFlash"):
                     target_delete = p.get("id")
                     break
             if target_delete is None:
@@ -302,7 +302,7 @@ class LCUClient:
                 await self._lcu_request("DELETE", f"/lol-perks/v1/pages/{target_delete}")
 
         new_page = {
-            "name": f"RiftMind: {champion}",
+            "name": f"NoFlash: {champion}",
             "primaryStyleId": preset["primary"],
             "subStyleId": preset["sub"],
             "selectedPerkIds": preset["perks"],
@@ -331,7 +331,7 @@ class LCUClient:
         if runes_ok and spells_ok:
             msg = f"¡Runas ({keystone}) y Hechizos importados al LoL para {champion}!"
         elif runes_ok:
-            msg = f"¡Página de runas 'RiftMind: {champion}' importada al LoL! (Hechizos se aplican en Champ Select)"
+            msg = f"¡Página de runas 'NoFlash: {champion}' importada al LoL! (Hechizos se aplican en Champ Select)"
         else:
             msg = "No se pudo crear la página de runas (verificá tener una página editable en tu cliente de LoL)."
 

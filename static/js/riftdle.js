@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   RiftMind — Riftdle (Mini-Juego interactivo estilo LoLdle)
+   NoFlash — Riftdle (Mini-Juego interactivo estilo LoLdle)
    Para pasar el rato mientras esperás cola en LoL
    ═══════════════════════════════════════════════════════ */
 
@@ -341,7 +341,7 @@ class WarmupHub {
     this.rtEl = document.getElementById('micro-rt');
     this.accEl = document.getElementById('micro-acc');
     this.bestEl = document.getElementById('micro-best');
-    this.microBest = parseInt(localStorage.getItem('riftmind_micro_best') || '0', 10);
+    this.microBest = parseInt(localStorage.getItem('NoFlash_micro_best') || '0', 10);
     if (this.bestEl) this.bestEl.textContent = `🏆 Récord: ${this.microBest}`;
 
     const startHandler = () => this.startMicro();
@@ -444,7 +444,7 @@ class WarmupHub {
     if (showSummary && this.overlay) {
       if (this.microScore > this.microBest) {
         this.microBest = this.microScore;
-        localStorage.setItem('riftmind_micro_best', String(this.microBest));
+        localStorage.setItem('NoFlash_micro_best', String(this.microBest));
         if (this.bestEl) this.bestEl.textContent = `🏆 Récord: ${this.microBest}`;
       }
       const avgRt = this.microRts.length > 0

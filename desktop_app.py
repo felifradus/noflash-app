@@ -24,7 +24,7 @@ ICON_SMALL = 0
 ICON_BIG = 1
 IMAGE_ICON = 1
 LR_LOADFROMFILE = 0x0010
-WINDOW_TITLE = "RiftMind — Live LoL Coach"
+WINDOW_TITLE = "NoFlash — Live LoL Coach"
 
 
 def _resource_dir() -> Path:
@@ -149,7 +149,7 @@ def main() -> None:
     # Identificador propio en la barra de tareas de Windows (no agrupar como Python)
     try:
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            "LoLDraftAnalyzer.Desktop.1"
+            "NoFlash.Desktop.1"
         )
     except Exception:
         pass

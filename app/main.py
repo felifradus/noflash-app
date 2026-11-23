@@ -109,8 +109,8 @@ def _get_api_key() -> str | None:
 
 
 def _get_cloud_url() -> str | None:
-    """URL opcional del servidor central de RiftMind en la nube (para usuarios sin API key)."""
-    url = os.environ.get("RIFTMIND_CLOUD_URL", "").strip().rstrip("/")
+    """URL opcional del servidor central de NoFlash en la nube (para usuarios sin API key)."""
+    url = os.environ.get("NoFlash_CLOUD_URL", "").strip().rstrip("/")
     return url or None
 
 
@@ -176,14 +176,14 @@ async def analyze_player(request: AnalyzeRequest) -> dict[str, Any]:
                 )
                 if resp.status_code == 200:
                     return resp.json()
-                detail = resp.json().get("detail", "Error del servidor RiftMind Cloud.")
+                detail = resp.json().get("detail", "Error del servidor NoFlash Cloud.")
                 raise HTTPException(status_code=resp.status_code, detail=detail)
         except HTTPException:
             raise
         except Exception as e:
             raise HTTPException(
                 status_code=503,
-                detail=f"No se pudo conectar con RiftMind Cloud ({cloud_url}): {e}",
+                detail=f"No se pudo conectar con NoFlash Cloud ({cloud_url}): {e}",
             )
 
     if not api_key:
@@ -191,7 +191,7 @@ async def analyze_player(request: AnalyzeRequest) -> dict[str, Any]:
             status_code=503,
             detail=(
                 "No se configuró la API Key de Riot Games. "
-                "Configurá RIOT_API_KEY en .env o RIFTMIND_CLOUD_URL para usar el servidor en la nube."
+                "Configurá RIOT_API_KEY en .env o NoFlash_CLOUD_URL para usar el servidor en la nube."
             ),
         )
 

@@ -1,4 +1,4 @@
-# 🚀 Kit de Redes Sociales y Lanzamiento — RiftMind
+# 🚀 Kit de Redes Sociales y Lanzamiento — NoFlash
 
 ## 1. Qué redes usa la competencia y dónde enfocarte
 
@@ -10,7 +10,7 @@
 | **X (Twitter)** | Conectar con streamers, coaches y creadores de LoL en NA/EUW y LATAM. | ⭐⭐⭐⭐ |
 | **Instagram (Reels)** | Resubir exactamente los mismos videos de TikTok sin esfuerzo extra. | ⭐⭐⭐ |
 
-**Handle recomendado para todas las redes:** `@riftmindgg` (o `@riftmindapp` si estuviera tomado).  
+**Handle recomendado para todas las redes:** `@NoFlashgg` (o `@NoFlashapp` si estuviera tomado).  
 **Foto de perfil:** usá tu logo oficial [logo.jpg](file:///C:/Users/felif/.gemini/antigravity/scratch/lol-draft-analyzer/static/logo.jpg).
 
 ---
@@ -23,10 +23,10 @@
   > 🧠 Live Voice Draft Coach for League of Legends  
   > ⚡ 1-Click Runes · Zero Overwolf Bloat · Anti-Tilt  
   > 🏆 Built by a Master player · Free Beta 👇  
-  > `riftmind.gg`
+  > `NoFlash.gg`
 
 - **X (Twitter):**
-  > Building **RiftMind** — the lightweight Live Voice Draft & In-Game Coach for League of Legends. No Overwolf, no video ads, trained on YOUR real games. 🧠⚡ Free Beta soon 👇
+  > Building **NoFlash** — the lightweight Live Voice Draft & In-Game Coach for League of Legends. No Overwolf, no video ads, trained on YOUR real games. 🧠⚡ Free Beta soon 👇
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## 3. Estructura ideal para tu servidor de Discord
 
-Creá el servidor **"RiftMind Community"** con solo 6 canales al principio (que se vea activo, no vacío):
+Creá el servidor **"NoFlash Community"** con solo 6 canales al principio (que se vea activo, no vacío):
 1. `#📢-announcements` — updates y nuevas versiones
 2. `#⬇️-download-beta` — link de descarga + guía en 3 pasos
 3. `#💬-general-en` — chat en inglés (NA/EUW)
@@ -55,17 +55,17 @@ Creá el servidor **"RiftMind Community"** con solo 6 canales al principio (que 
 
 ### 🎬 Video 1 — El golpe directo a Overwolf (el más viral en NA/EUW)
 - **Gancho (0–3s, texto en pantalla):** *"I got tired of Overwolf killing my FPS, so I built my own League Draft Coach."*
-- **Desarrollo (3–18s):** Mostrás tu pantalla entrando a Champ Select en Master → **RiftMind** salta sola, muestra el **Draft Diff**, te habla por voz (*"Recommended ban: Draven. Your best pick right now is Jinx. Take Cleanse against Leona."*), apretás **1-Click Import Runes** y aparecen al instante en el cliente de LoL.
+- **Desarrollo (3–18s):** Mostrás tu pantalla entrando a Champ Select en Master → **NoFlash** salta sola, muestra el **Draft Diff**, te habla por voz (*"Recommended ban: Draven. Your best pick right now is Jinx. Take Cleanse against Leona."*), apretás **1-Click Import Runes** y aparecen al instante en el cliente de LoL.
 - **Cierre (18–25s):** *"Zero Overwolf. Zero video ads. Analyzes your last 160 games. Comment `RIFT` if you want the free beta."*
 
 ### 🎬 Video 2 — El Detector de Tilt (súper compartible)
 - **Gancho (0–3s):** *"My own League app just told me to go touch grass 💀"*
 - **Desarrollo (3–15s):** Mostrás el cartel rojo de **Alerta de Tilt** tras 3 derrotas + el gráfico visual de Jinx mostrando `7.6 deaths in losses vs 5.2 in wins` y `0.3 Control Wards`.
-- **Cierre (15–22s):** *"Honestly saved me -60 LP today. Link in bio to try RiftMind free."*
+- **Cierre (15–22s):** *"Honestly saved me -60 LP today. Link in bio to try NoFlash free."*
 
 ### 🎬 Video 3 — Modo Smurf (muy valorado por jugadores de elo medio/alto)
 - **Gancho (0–3s):** *"Playing on a smurf? Every LoL app breaks… except this one."*
-- **Desarrollo (3–18s):** Mostrás cómo cambiás de cuenta con el botón **Switch Account** en 1 click: el LoL lee el draft en vivo desde la smurf, pero RiftMind recomienda con las 160 partidas de tu cuenta Master.
+- **Desarrollo (3–18s):** Mostrás cómo cambiás de cuenta con el botón **Switch Account** en 1 click: el LoL lee el draft en vivo desde la smurf, pero NoFlash recomienda con las 160 partidas de tu cuenta Master.
 
 ---
 
@@ -79,7 +79,7 @@ Creá el servidor **"RiftMind Community"** con solo 6 canales al principio (que 
 >
 > I got tired of heavy Overwolf apps eating RAM, playing video ads, and recommending 53% WR meta champions I've never actually played.
 >
-> So I built **RiftMind**, a lightweight native desktop app that connects directly to the League Client (100% Riot-compliant LCU + Live Client API):
+> So I built **NoFlash**, a lightweight native desktop app that connects directly to the League Client (100% Riot-compliant LCU + Live Client API):
 > - **Analyzes your last 160 games + mastery** (cached locally so it loads in <2s)
 > - **Live Voice Coach** during Champ Select (bans, best picks from *your* pool, Cleanse/Exhaust alerts, Draft Diff bar)
 > - **1-Click Rune & Summoner Spell import** straight into the LoL client

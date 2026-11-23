@@ -1,5 +1,5 @@
 """
-Script de compilación para generar RiftMind.exe (standalone para Windows)
+Script de compilación para generar NoFlash.exe (standalone para Windows)
 usando PyInstaller. Incluye todos los archivos estáticos, ícono Hextech y módulos.
 """
 
@@ -19,7 +19,7 @@ def main() -> None:
         "--onefile",
         "--windowed",
         "--name",
-        "RiftMind",
+        "NoFlash",
         "--icon",
         str(ROOT / "static" / "app.ico"),
         "--add-data",
@@ -52,9 +52,9 @@ def main() -> None:
         "webview",
         str(ROOT / "desktop_app.py"),
     ]
-    print("Compilando RiftMind.exe...")
+    print("Compilando NoFlash.exe...")
     subprocess.run(cmd, cwd=str(ROOT), check=True)
-    exe_path = ROOT / "dist" / "RiftMind.exe"
+    exe_path = ROOT / "dist" / "NoFlash.exe"
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
         print(f"OK! Generado: {exe_path} ({size_mb:.1f} MB)")
