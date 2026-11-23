@@ -51,7 +51,24 @@
     }
 
     /* Hero */
-    .hero { text-align: center; padding: 5rem 0 3.5rem; }
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: 5.5rem 2rem 4.2rem;
+      margin-top: 1.5rem;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(200,155,60,0.4);
+      background:
+        linear-gradient(180deg, rgba(1,10,19,0.72) 0%, rgba(9,20,40,0.88) 55%, rgba(1,10,19,0.97) 100%),
+        url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Sylas_0.jpg') center 20% / cover no-repeat;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(240,230,210,0.1);
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 10%; right: 10%; height: 2px;
+      background: linear-gradient(90deg, transparent, #0ac8b9, #f6d365, #c89b3c, transparent);
+    }
     .hero-pill {
       display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.35rem 0.9rem; border-radius: 999px;
@@ -156,33 +173,33 @@
       <div class="feat-grid">
         <div class="feat-card">
           <div class="feat-icon"><i class="fa-solid fa-microphone-lines"></i></div>
-          <h3 data-k="f1_t">Natural Neural Voice Coach</h3>
-          <p data-k="f1_p">Spoken bans, best picks, Cleanse/Exhaust alerts in Champ Select, plus Drake, Grubs, Baron, enemy level 6 &amp; jungle clear callouts in-game.</p>
+          <h3 data-k="f1_t">LoL Announcer Voice Coach &amp; Custom Reminders</h3>
+          <p data-k="f1_p">Choose between Rift Announcer, Esports Caster, or HD Coaches. Live bans, picks, Early Lane Plans, Drake/Baron timers, plus custom minimap &amp; ward reminders.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon"><i class="fa-solid fa-binoculars"></i></div>
+          <h3 data-k="f2_t">Live 10-Player Match Scouting</h3>
+          <p data-k="f2_p">As soon as your match loads, NoFlash scouts all 5 allies &amp; 5 enemies: SoloQ Rank, Win Rate, mastery on their current champ, plus #1 Threat &amp; Camp Target radar.</p>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
-          <h3 data-k="f2_t">1-Click Runes &amp; Spells to LoL</h3>
-          <p data-k="f2_p">Automatically creates your optimal rune page and sets your Summoner Spells directly in the League Client — no Overwolf required.</p>
+          <h3 data-k="f3_t">1-Click Runes, Spells &amp; Auto-Open with LoL</h3>
+          <p data-k="f3_p">Imports optimal runes &amp; Summoner Spells straight into the League Client and auto-launches when you open LoL — 100% native, zero Overwolf bloat.</p>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fa-solid fa-chart-line"></i></div>
-          <h3 data-k="f3_t">160-Game Deep Analysis (&lt;2s)</h3>
-          <p data-k="f3_p">Local SQLite cache loads 160 games in under 2 seconds. See your Nemesis, Free LP victim, CS@10, DPM, and per-champion improvement tags.</p>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon"><i class="fa-solid fa-heart-pulse"></i></div>
-          <h3 data-k="f4_t">Friendly Anti-Tilt &amp; Dodge Radar</h3>
-          <p data-k="f4_p">Live Draft Diff bar tells you when a draft is tough, and our tilt detector reminds you to take a quick break before losing -60 LP.</p>
+          <h3 data-k="f4_t">160-Game Deep Analysis &amp; Dodge Radar</h3>
+          <p data-k="f4_p">Local SQLite cache loads 160 games in under 2 seconds. See your Nemesis, Free LP victim, Live Draft Diff bar, and Anti-Tilt alerts before losing -60 LP.</p>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fa-solid fa-user-secret"></i></div>
           <h3 data-k="f5_t">Smurf Mode Built-In</h3>
-          <p data-k="f5_p">Playing on a smurf? Lock your main account profile so NoFlash reads the live draft from your smurf while recommending from your real pool.</p>
+          <p data-k="f5_p">Playing on a smurf? Lock your main account profile so NoFlash reads the live draft from your smurf while recommending from your real champion pool.</p>
         </div>
         <div class="feat-card">
           <div class="feat-icon"><i class="fa-solid fa-gamepad"></i></div>
-          <h3 data-k="f6_t">Queue Warm-Up Arcade</h3>
-          <p data-k="f6_p">Warm up mouse reflexes in a 20s Micro Aim arena, sharpen itemization in the Macro &amp; Builds Quiz, or play Riftdle while waiting in queue.</p>
+          <h3 data-k="f6_t">Queue Warm-Up Arcade &amp; Flashdle</h3>
+          <p data-k="f6_p">Play Flashdle (6-column LoLdle with splash hints), warm up mouse reflexes in a 20s Micro Aim arena, or sharpen itemization in the Macro &amp; Builds Quiz.</p>
         </div>
       </div>
     </section>
@@ -197,7 +214,7 @@
             <li><i class="fa-solid fa-check"></i> <span data-k="fr1">Live Draft Coach + Bans &amp; Picks</span></li>
             <li><i class="fa-solid fa-check"></i> <span data-k="fr2">1-Click Runes &amp; Spells Import</span></li>
             <li><i class="fa-solid fa-check"></i> <span data-k="fr3">In-Game Objective Timers &amp; Spell Tracker</span></li>
-            <li><i class="fa-solid fa-check"></i> <span data-k="fr4">Warm-Up Arcade (Riftdle, Micro, Quiz)</span></li>
+            <li><i class="fa-solid fa-check"></i> <span data-k="fr4">Warm-Up Arcade (Flashdle, Micro, Quiz)</span></li>
           </ul>
           <a href="#download" class="btn-secondary" style="justify-content:center;margin-top:auto;" data-k="cta_free">Start Free</a>
         </div>
@@ -240,12 +257,12 @@
       f4_p: 'Medidor de Draft Diff en vivo y detector de racha negativa que te avisa cuándo hacer un break de 15 min antes de regalar -60 LP.',
       f5_t: 'Modo Smurf Integrado',
       f5_p: '¿Jugando en smurf? Bloqueá tu cuenta principal para que NoFlash lea el draft desde la smurf pero recomiende con tu pool real.',
-      f6_t: 'Zona Warm-Up para la Cola',
-      f6_p: 'Calentá reflejos en una arena de Micro (20s), practicá builds en el Quiz de Macro o jugá Riftdle mientras esperás cola.',
+      f6_t: 'Zona Warm-Up & Flashdle',
+      f6_p: 'Jugá Flashdle (estilo LoLdle de 6 columnas con pistas de Splash Art), calentá reflejos en Micro (20s) o practicá builds en el Quiz.',
       price_title: 'Precios Simples y Justos',
       free_t: 'Beta Gratis', forever: '/ para siempre', per_mo: '/ mes',
       fr1: 'Coach de Draft en Vivo + Bans y Picks', fr2: 'Importar Runas y Hechizos al LoL',
-      fr3: 'Timers de Objetivos y Hechizos Enemigos', fr4: 'Zona Warm-Up (Riftdle, Micro, Quiz)',
+      fr3: 'Scouting 5v5, Timers y Hechizos Enemigos', fr4: 'Zona Warm-Up (Flashdle, Micro, Quiz)',
       pr1: 'Análisis Profundo (160+ partidas) y Némesis', pr2: 'Coach por Voz Neuronal Premium (9 idiomas)',
       pr3: 'Cuentas Smurf ilimitadas y Modo Duo', pr4: 'Cero anuncios · Updates prioritarios',
       cta_free: 'Empezar Gratis', cta_pro: 'Probar Beta Gratis',
