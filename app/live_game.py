@@ -60,6 +60,119 @@ ALL_IN_ULT_CHAMPS = {
 }
 
 
+# Conjuntos tácticos para el Plan de Línea inicial (Min 0–2:30)
+ENGAGE_BOT_CHAMPS = {
+    "nautilus", "thresh", "blitzcrank", "leona", "pyke", "alistar", "rell",
+    "rakan", "maokai", "amumu", "pantheon", "sett", "samira", "tristana", "draven",
+}
+POKE_LANE_CHAMPS = {
+    "caitlyn", "lux", "xerath", "karma", "brand", "velkoz", "ezreal", "varus",
+    "ashe", "senna", "zyra", "morgana", "hwei", "syndra", "orianna", "viktor",
+    "ziggs", "jayce", "teemo", "quinn", "vayne", "kennen", "heimeirdinger", "heimerdinger",
+}
+MELEE_ALLIN_SOLO_CHAMPS = {
+    "zed", "yasuo", "yone", "talon", "fizz", "akali", "katarina", "qiyana",
+    "irelia", "darius", "riven", "sett", "renekton", "aatrox", "camille",
+    "fiora", "jax", "olaf", "tryndamere", "kled", "pantheon", "sylas", "ekko",
+}
+EARLY_INVADE_JUNGLE = {
+    "leesin", "graves", "kindred", "nidalee", "shaco", "elise", "khazix",
+    "rengar", "belveth", "reksai", "xinzhau", "xinzhao", "jarvaniv", "warwick",
+}
+
+
+def _build_early_lane_plan(
+    my_champ: str,
+    my_pos: str,
+    enemies: list[dict[str, Any]],
+    is_en: bool,
+) -> tuple[str, str]:
+    """Genera recomendación táctica específica para los primeros 3 minutos de línea."""
+    pos = (my_pos or "").upper()
+    norm = lambda s: "".join(ch for ch in (s or "").lower() if ch.isalnum())
+
+    enemy_by_pos = { (e.get("position") or "").upper(): e.get("champion", "") for e in enemies }
+
+    if pos == "JUNGLE":
+        enemy_jg = enemy_by_pos.get("JUNGLE", "")
+        if norm(enemy_jg) in EARLY_INVADE_JUNGLE:
+            title = f"Early Jungle Plan vs {enemy_jg}" if is_en else f"Plan de Jungla inicial vs {enemy_jg}"
+            msg = (
+                f"{enemy_jg} loves early invades. Ward your opposite river entrance at 1:15 and track their start."
+                if is_en else
+                f"Ojo: {enemy_jg} suele invadir temprano. Poné ward defensivo en el río al minuto 1:15 y protegé tu primer clear."
+            )
+            return title, msg
+        title = "Early Jungle Plan (Min 0–3)" if is_en else "Plan de Jungla inicial (Min 0–3)"
+        msg = (
+            "Focus on a clean first clear into Scuttle at 3:30. Look for a gank on whichever side lane pushes in."
+            if is_en else
+            "Enfocate en un primer clear limpio hacia el Cangrejo del 3:30 y buscá gank en la línea que quede empujada."
+        )
+        return title, msg
+
+    if pos in ("BOTTOM", "UTILITY"):
+        bot_enemies = [
+            e.get("champion", "")
+            for e in enemies
+            if (e.get("position") or "").upper() in ("BOTTOM", "UTILITY")
+        ]
+        bot_norms = {norm(c) for c in bot_enemies}
+        lane_label = " / ".join(c for c in bot_enemies if c) or ("Bot lane" if is_en else "Bot rival")
+        if bot_norms & ENGAGE_BOT_CHAMPS:
+            title = f"Lane Plan vs {lane_label}" if is_en else f"Plan de Línea vs {lane_label}"
+            msg = (
+                "Rush Level 2 first (1st wave + 3 melees) and stay behind minions to deny their engage."
+                if is_en else
+                "Buscá Nivel 2 primero (primera oleada más 3 melees de la segunda) y jugá detrás de los súbditos contra su engage."
+            )
+            return title, msg
+        if bot_norms & POKE_LANE_CHAMPS:
+            title = f"Lane Plan vs {lane_label}" if is_en else f"Plan de Línea vs {lane_label}"
+            msg = (
+                "Avoid taking free poke at Level 1. Push the wave for prio or wait for a clean Level 2 or 3 all-in."
+                if is_en else
+                "No regales vida al nivel 1 contra su poke. Empujá rápido para no quedar bajo torre o esperá nivel 2 para tradear."
+            )
+            return title, msg
+        title = f"Lane Plan vs {lane_label}" if is_en else f"Plan de Línea vs {lane_label}"
+        msg = (
+            "Contest Level 2 first (9 minions) and drop a river ward before 2:45 for the enemy jungler."
+            if is_en else
+            "Peleá el Nivel 2 primero (9 súbditos) y poné ward en el río antes del minuto 2:45 por el jungla rival."
+        )
+        return title, msg
+
+    # TOP o MIDDLE (línea sola)
+    opp = enemy_by_pos.get(pos, "")
+    opp_norm = norm(opp)
+    opp_label = opp or ("your lane opponent" if is_en else "tu rival de línea")
+    if opp_norm in MELEE_ALLIN_SOLO_CHAMPS:
+        title = f"Lane Plan vs {opp_label}" if is_en else f"Plan de Línea vs {opp_label}"
+        msg = (
+            f"Punish {opp_label} at Level 1 and 2 before their Level 3 combo, and keep the wave near your turret."
+            if is_en else
+            f"Castigá a {opp_label} en niveles 1 y 2 antes de su combo de nivel 3, y mantené la oleada cerca de tu torre."
+        )
+        return title, msg
+    if opp_norm in POKE_LANE_CHAMPS:
+        title = f"Lane Plan vs {opp_label}" if is_en else f"Plan de Línea vs {opp_label}"
+        msg = (
+            f"Respect {opp_label}'s Level 1 range, keep your HP high, and look for your Level 3 spike or jungle gank."
+            if is_en else
+            f"Respetá el rango de {opp_label} al nivel 1, cuidá tu vida y buscá tu spike de nivel 3 o gank de tu jungla."
+        )
+        return title, msg
+
+    title = f"Early Lane Plan ({my_champ})" if is_en else f"Plan de Línea inicial ({my_champ})"
+    msg = (
+        "Hit Level 2 first (7 minions in solo lane) to win lane prio, and ward river around 2:30."
+        if is_en else
+        "Buscá el Nivel 2 primero (7 súbditos en línea sola) para ganar prioridad y poné ward en el río al minuto 2:30."
+    )
+    return title, msg
+
+
 def _spell_cooldown(display_name: str) -> int:
     low = (display_name or "").lower()
     for key, cd in SPELL_BASE_COOLDOWNS.items():
@@ -184,6 +297,18 @@ class LiveGameMonitor:
         # ── Generar avisos tácticos en vivo (con ID único para que la voz no repita) ──
         alerts: list[dict[str, str]] = []
         is_en = (lang or "es").lower() != "es"
+
+        # 0. Plan táctico de inicio de línea (0:15 – 2:35) según tu campeón, rol y matchup
+        if 15 <= game_time <= 155:
+            my_champ_name = (my_entry or {}).get("championName", "")
+            my_pos_name = (my_entry or {}).get("position", "")
+            lp_title, lp_msg = _build_early_lane_plan(my_champ_name, my_pos_name, enemies, is_en)
+            alerts.append({
+                "id": "early_lane_plan",
+                "type": "tip",
+                "title": lp_title,
+                "message": lp_msg,
+            })
 
         # 1. Timers clave de objetivos y ventanas de gank/roam (100% legal por reloj oficial)
         if 170 <= game_time <= 195:
