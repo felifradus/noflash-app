@@ -118,10 +118,24 @@ class WarmupHub {
     this.flashEl = document.getElementById('dodge-flash-pill');
     this.bestEl = document.getElementById('dodge-best');
     this.ctrlBtn = document.getElementById('btn-dodge-control');
+    this.nickInput = document.getElementById('dodge-nick-input');
+    this.lbListEl = document.getElementById('dodge-lb-list');
+    this.myPosEl = document.getElementById('dodge-my-pos');
+
+    if (this.nickInput) {
+      this.nickInput.value = localStorage.getItem('NoFlash_dodge_nick') || '';
+      this.nickInput.addEventListener('change', () => {
+        const val = this.nickInput.value.trim();
+        if (val) localStorage.setItem('NoFlash_dodge_nick', val);
+        this.loadLeaderboard();
+      });
+    }
 
     this.bestScore = parseInt(localStorage.getItem('NoFlash_dodge_best') || '0', 10);
     this.microBest = this.bestScore;
     this.updateBestUI();
+    this.currentChampName = 'Ezreal';
+    this.loadLeaderboard();
 
     this.followMode = false;
     this.running = false;
@@ -186,13 +200,105 @@ class WarmupHub {
 
   _syncPlayerChampAvatar() {
     try {
+      const player = window.app?.state?.playerData?.player;
+      if (player?.game_name && this.nickInput && !this.nickInput.value.trim()) {
+        const autoNick = player.tag_line ? `${player.game_name}#${player.tag_line}` : player.game_name;
+        this.nickInput.value = autoNick;
+        localStorage.setItem('NoFlash_dodge_nick', autoNick);
+      }
       const best = window.app?.state?.playerData?.analysis?.best_champions?.[0];
       const cName = best?.champion || best?.champion_name;
       if (cName && typeof champImgUrl === 'function') {
+        this.currentChampName = cName;
         const nextUrl = champImgUrl(cName);
         if (this.playerImg.src !== nextUrl) this.playerImg.src = nextUrl;
       }
     } catch {}
+  }
+
+  _getPlayerNick() {
+    const typed = this.nickInput?.value?.trim();
+    if (typed) return typed;
+    const saved = localStorage.getItem('NoFlash_dodge_nick');
+    if (saved) return saved;
+    const p = window.app?.state?.playerData?.player;
+    if (p?.game_name) return p.tag_line ? `${p.game_name}#${p.tag_line}` : p.game_name;
+    return 'Summoner';
+  }
+
+  async loadLeaderboard() {
+    if (!this.lbListEl) return;
+    try {
+      const nick = this._getPlayerNick();
+      const res = await fetch(`/api/dodge/leaderboard?player=${encodeURIComponent(nick)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      this._renderLeaderboard(data);
+    } catch {}
+  }
+
+  async submitLeaderboardScore(score, apm, rankName) {
+    try {
+      const nick = this._getPlayerNick();
+      if (this.nickInput && !this.nickInput.value.trim()) this.nickInput.value = nick;
+      const res = await fetch('/api/dodge/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player_name: nick,
+          score,
+          apm,
+          rank_name: rankName,
+          champ: this.currentChampName || 'Ezreal',
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      this._renderLeaderboard(data);
+      const posEl = document.getElementById('dodge-end-global-pos');
+      if (posEl && data.my_rank) {
+        posEl.textContent = `🌍 Global Rank: #${data.my_rank.position} of ${data.my_rank.total_players}`;
+      }
+    } catch {}
+  }
+
+  _renderLeaderboard(data) {
+    if (!this.lbListEl) return;
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+    const myNick = this._getPlayerNick().toLowerCase();
+
+    if (this.myPosEl) {
+      if (data.my_rank) {
+        this.myPosEl.textContent = isEn
+          ? `🌍 Your Rank: #${data.my_rank.position} / ${data.my_rank.total_players}`
+          : `🌍 Tu Puesto: #${data.my_rank.position} / ${data.my_rank.total_players}`;
+      } else {
+        this.myPosEl.textContent = isEn ? '🌍 Play a round to rank!' : '🌍 ¡Jugá una ronda para rankear!';
+      }
+    }
+
+    const top = data.top || [];
+    if (top.length === 0) {
+      this.lbListEl.innerHTML = `<p class="coach-muted" style="grid-column:1/-1;text-align:center;margin:0.4rem 0;">${isEn ? 'Be the #1 player on the Global Leaderboard!' : '¡Sé el #1 del Ranking Global!'}</p>`;
+      return;
+    }
+
+    const medal = (pos) => pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `#${pos}`;
+    this.lbListEl.innerHTML = top.map((row) => {
+      const isMe = row.player_name.toLowerCase() === myNick;
+      const img = typeof champImgUrl === 'function' ? champImgUrl(row.champ) : `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/${row.champ}.png`;
+      return `
+        <div class="dodge-lb-row ${isMe ? 'is-me' : ''}">
+          <span class="dodge-lb-pos">${medal(row.position)}</span>
+          <img class="dodge-lb-avatar" src="${img}" alt="${row.champ}">
+          <span class="dodge-lb-name">${row.player_name}</span>
+          <span class="dodge-lb-meta">
+            <span class="dodge-lb-score">${row.score}</span>
+            <span>· ${row.apm} APM</span>
+          </span>
+        </div>
+      `;
+    }).join('');
   }
 
   updateBestUI() {
@@ -277,13 +383,15 @@ class WarmupHub {
           <div class="dodge-stat-box"><span>💨 ${isEn ? 'Close Dodges' : 'Esquives Justos'}</span><strong>${this.closeDodges}</strong></div>
           <div class="dodge-stat-box"><span>✨ ${isEn ? 'Clutch Flashes' : 'Flash Clutches'}</span><strong>${this.clutchFlashes}</strong></div>
         </div>
-        <p style="margin:0.45rem 0 0.75rem;color:#cbd5e1;font-size:0.86rem;">${apmFlavor}</p>
+        <p id="dodge-end-global-pos" style="margin:0.2rem 0 0.15rem;color:#5eead4;font-weight:700;font-size:0.84rem;">🌍 Updating Global Rank...</p>
+        <p style="margin:0.25rem 0 0.75rem;color:#cbd5e1;font-size:0.86rem;">${apmFlavor}</p>
         <button class="btn-analyze" id="btn-dodge-retry" style="max-width:220px;margin:0 auto;">
           <i class="fa-solid fa-rotate-right"></i> ${isEn ? 'Play Again' : 'Jugar otra vez'}
         </button>
       `;
       this.overlayEl.style.display = 'flex';
       document.getElementById('btn-dodge-retry')?.addEventListener('click', () => this.startDodge());
+      this.submitLeaderboardScore(finalScore, apm, rank.name);
     }
   }
 

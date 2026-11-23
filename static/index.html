@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=33">
+  <link rel="stylesheet" href="/static/css/style.css?v=34">
 </head>
 <body>
 
@@ -659,6 +659,24 @@
               </button>
             </div>
           </div>
+
+          <!-- Global Top 10 Leaderboard (synced via NoFlash Cloud) -->
+          <div class="dodge-lb-card" id="dodge-lb-card">
+            <div class="dodge-lb-header">
+              <div class="dodge-lb-title">
+                <i class="fa-solid fa-earth-americas" style="color:#0ac8b9;"></i>
+                <span>Global Top 10 Leaderboard</span>
+                <span class="dodge-my-pos-pill" id="dodge-my-pos">🌍 Play a round to rank!</span>
+              </div>
+              <div class="dodge-nick-wrap">
+                <label for="dodge-nick-input" style="font-size:0.74rem;color:#94a3b8;">Nick:</label>
+                <input type="text" id="dodge-nick-input" maxlength="22" placeholder="Your Riot ID / Nick">
+              </div>
+            </div>
+            <div class="dodge-lb-list" id="dodge-lb-list">
+              <p class="coach-muted" style="text-align:center;margin:0.5rem 0;">Loading global rankings...</p>
+            </div>
+          </div>
         </div>
 
         <!-- MODO 2: FLASHDLE (LoLdle-style) -->
@@ -745,7 +763,7 @@
   <script src="/static/js/ui_sfx.js?v=2"></script>
   <script src="/static/js/voice.js?v=34"></script>
   <script src="/static/js/riftdle.js?v=32"></script>
-  <script src="/static/js/dodge_arena.js?v=3"></script>
+  <script src="/static/js/dodge_arena.js?v=4"></script>
   <script src="/static/js/app.js?v=35"></script>
 </body>
 </html>

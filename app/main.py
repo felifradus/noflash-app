@@ -395,6 +395,153 @@ async def get_live_game(lang: str = "en") -> dict[str, Any]:
     return await live_game_monitor.get_live_state(lang=lang)
 
 
+# ── Global Dodge Arena Leaderboard (SQLite + Cloud Proxy a Render) ──
+import sqlite3
+from datetime import datetime, timezone
+
+_LB_DB_PATH = (
+    Path(os.environ.get("LOCALAPPDATA", ".")) / "NoFlash" / "leaderboard.db"
+    if getattr(sys, "frozen", False)
+    else Path(__file__).resolve().parent / "data" / "leaderboard.db"
+)
+
+
+def _lb_conn() -> sqlite3.Connection:
+    _LB_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(_LB_DB_PATH), timeout=5)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS dodge_leaderboard (
+            player_name TEXT PRIMARY KEY,
+            score INTEGER NOT NULL,
+            apm INTEGER NOT NULL DEFAULT 0,
+            rank_name TEXT NOT NULL DEFAULT 'IRON',
+            champ TEXT NOT NULL DEFAULT 'Ezreal',
+            updated_at TEXT NOT NULL
+        )
+        """
+    )
+    return conn
+
+
+def _lb_query(player: str = "") -> dict[str, Any]:
+    clean_p = (player or "").strip()[:28]
+    with _lb_conn() as conn:
+        rows = conn.execute(
+            "SELECT player_name, score, apm, rank_name, champ FROM dodge_leaderboard "
+            "ORDER BY score DESC, apm DESC LIMIT 10"
+        ).fetchall()
+        total = conn.execute("SELECT COUNT(*) FROM dodge_leaderboard").fetchone()[0]
+
+        my_rank = None
+        if clean_p:
+            me = conn.execute(
+                "SELECT player_name, score, apm, rank_name, champ FROM dodge_leaderboard WHERE LOWER(player_name)=LOWER(?)",
+                (clean_p,),
+            ).fetchone()
+            if me:
+                higher = conn.execute(
+                    "SELECT COUNT(*) FROM dodge_leaderboard WHERE score > ? OR (score = ? AND apm > ?)",
+                    (me[1], me[1], me[2]),
+                ).fetchone()[0]
+                my_rank = {
+                    "position": int(higher) + 1,
+                    "total_players": int(total),
+                    "player_name": me[0],
+                    "score": int(me[1]),
+                    "apm": int(me[2]),
+                    "rank_name": me[3],
+                    "champ": me[4],
+                }
+
+    top = [
+        {
+            "position": idx + 1,
+            "player_name": r[0],
+            "score": int(r[1]),
+            "apm": int(r[2]),
+            "rank_name": r[3],
+            "champ": r[4],
+        }
+        for idx, r in enumerate(rows)
+    ]
+    return {"success": True, "top": top, "total_players": int(total), "my_rank": my_rank}
+
+
+class DodgeScoreRequest(BaseModel):
+    player_name: str
+    score: int
+    apm: int = 0
+    rank_name: str = "IRON"
+    champ: str = "Ezreal"
+
+
+@app.get("/api/dodge/leaderboard")
+async def get_dodge_leaderboard(player: str = "") -> dict[str, Any]:
+    """Obtiene el Top 10 global de Dodge Arena y la posición del jugador."""
+    cloud_url = _get_cloud_url()
+    if cloud_url:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as proxy:
+                resp = await proxy.get(
+                    f"{cloud_url}/api/dodge/leaderboard",
+                    params={"player": player},
+                )
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception as e:
+            logger.debug(f"Cloud leaderboard fallback local: {e}")
+    return _lb_query(player)
+
+
+@app.post("/api/dodge/score")
+async def submit_dodge_score(req: DodgeScoreRequest) -> dict[str, Any]:
+    """Guarda el récord del jugador en el Leaderboard Global de Dodge Arena."""
+    clean_name = re.sub(r"[^\w\s#.-]", "", (req.player_name or "").strip())[:24] or "Summoner"
+    safe_score = max(0, min(int(req.score), 250000))
+    safe_apm = max(0, min(int(req.apm), 600))
+    safe_rank = (req.rank_name or "IRON")[:16].upper()
+    safe_champ = re.sub(r"[^A-Za-z0-9]", "", (req.champ or "Ezreal"))[:24] or "Ezreal"
+
+    payload = {
+        "player_name": clean_name,
+        "score": safe_score,
+        "apm": safe_apm,
+        "rank_name": safe_rank,
+        "champ": safe_champ,
+    }
+
+    cloud_url = _get_cloud_url()
+    if cloud_url:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as proxy:
+                resp = await proxy.post(f"{cloud_url}/api/dodge/score", json=payload)
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception as e:
+            logger.debug(f"Cloud submit score fallback local: {e}")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    with _lb_conn() as conn:
+        existing = conn.execute(
+            "SELECT score, apm FROM dodge_leaderboard WHERE LOWER(player_name)=LOWER(?)",
+            (clean_name,),
+        ).fetchone()
+        if existing:
+            if safe_score > existing[0] or (safe_score == existing[0] and safe_apm > existing[1]):
+                conn.execute(
+                    "UPDATE dodge_leaderboard SET player_name=?, score=?, apm=?, rank_name=?, champ=?, updated_at=? WHERE LOWER(player_name)=LOWER(?)",
+                    (clean_name, safe_score, safe_apm, safe_rank, safe_champ, now_iso, clean_name),
+                )
+        else:
+            conn.execute(
+                "INSERT INTO dodge_leaderboard (player_name, score, apm, rank_name, champ, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                (clean_name, safe_score, safe_apm, safe_rank, safe_champ, now_iso),
+            )
+        conn.commit()
+    return _lb_query(clean_name)
+
+
 class LiveScoutPlayer(BaseModel):
     game_name: str = ""
     tag_line: str = ""

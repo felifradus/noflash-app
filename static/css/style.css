@@ -4434,3 +4434,124 @@ body {
 button, select, input {
   transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
 }
+
+/* ── Global Dodge Arena Top 10 Leaderboard ── */
+.dodge-lb-card {
+  margin-top: 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(11, 23, 42, 0.94), rgba(5, 13, 26, 0.97));
+  border: 1px solid rgba(200, 155, 60, 0.36);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+
+.dodge-lb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.dodge-lb-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f0e6d2;
+}
+
+.dodge-my-pos-pill {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(10, 200, 185, 0.16);
+  border: 1px solid rgba(10, 200, 185, 0.48);
+  color: #5eead4;
+}
+
+.dodge-nick-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#dodge-nick-input {
+  background: #07101e;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  color: #f0e6d2;
+  border-radius: 7px;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.78rem;
+  width: 155px;
+}
+
+#dodge-nick-input:focus {
+  outline: none;
+  border-color: #0ac8b9;
+}
+
+.dodge-lb-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.45rem;
+}
+
+.dodge-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 9px;
+  background: rgba(9, 20, 40, 0.75);
+  border: 1px solid rgba(200, 155, 60, 0.18);
+  font-size: 0.8rem;
+}
+
+.dodge-lb-row.is-me {
+  border-color: #f6d365;
+  background: linear-gradient(90deg, rgba(200, 155, 60, 0.22), rgba(10, 200, 185, 0.12));
+}
+
+.dodge-lb-pos {
+  min-width: 28px;
+  font-weight: 800;
+  color: #f6d365;
+  text-align: center;
+}
+
+.dodge-lb-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #c89b3c;
+  flex-shrink: 0;
+}
+
+.dodge-lb-name {
+  flex: 1;
+  font-weight: 700;
+  color: #f0e6d2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dodge-lb-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.dodge-lb-score {
+  font-weight: 800;
+  color: #fde047;
+}
