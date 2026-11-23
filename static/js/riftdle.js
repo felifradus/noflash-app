@@ -169,6 +169,9 @@ class RiftdleGame {
       localStorage.setItem('riftdle_streak', String(this.streak));
       this.updateStreakUI();
       this.showWinBanner();
+      window.uiSfx?.playVictory();
+    } else {
+      window.uiSfx?.playTileFlip();
     }
     this.renderBoard();
   }

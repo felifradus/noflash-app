@@ -535,6 +535,7 @@ class DraftAnalyzer {
 
       // Switch to analysis
       this.switchView('analysis');
+      window.uiSfx?.playSuccess();
       this.showToast(isEnAn ? 'Analysis complete!' : '¡Análisis completado!', 'success');
     } catch (err) {
       this.showToast(err.message, 'error');
@@ -1367,6 +1368,7 @@ class DraftAnalyzer {
             body: JSON.stringify({ champion, keystone, spells }),
           });
           const data = await res.json();
+          if (data.success) window.uiSfx?.playSuccess();
           this.showToast(data.message || 'Importación completada.', data.success ? 'success' : 'error');
         } catch {
           this.showToast('Error al conectar con el cliente de LoL.', 'error');
@@ -1536,6 +1538,7 @@ class DraftAnalyzer {
       if (this.state.playerData) {
         if (this.state.currentView !== 'draft') {
           this.switchView('draft');
+          window.uiSfx?.playLockIn();
           const isEnCs = typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
           this.showToast(isEnCs ? 'Live draft detected! Updating recommendations...' : '¡Draft en vivo detectado! Recomendando en tiempo real...', 'success');
         }
@@ -1727,6 +1730,7 @@ class DraftAnalyzer {
         if (!this.liveInGameWasActive) {
           this.liveInGameWasActive = true;
           this.switchView('ingame');
+          window.uiSfx?.playLockIn();
           this.showToast(isEnLive ? 'Live match detected! Activating In-Game Coach.' : '¡Partida en vivo detectada! Activando Coach In-Game.', 'success');
           if (window.voiceCoach) {
             window.voiceCoach.speak(isEnLive ? 'Match detected. Good luck on the Rift.' : 'Partida detectada. Mucha suerte en la Grieta.', { dedupeId: 'game_start' });
