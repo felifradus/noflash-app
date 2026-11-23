@@ -31,12 +31,18 @@ ICON_BIG = 1
 IMAGE_ICON = 1
 LR_LOADFROMFILE = 0x0010
 WINDOW_TITLE = "NoFlash — Live LoL Coach"
+OVERLAY_TITLE = "NoFlash HUD"
 RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
 RUN_REG_NAME = "NoFlashAutoLaunch"
 SW_MINIMIZE = 6
 SW_MAXIMIZE = 3
 SW_RESTORE = 9
 WM_CLOSE = 0x0010
+GWL_EXSTYLE = -20
+WS_EX_TOOLWINDOW = 0x00000080
+WS_EX_LAYERED = 0x00080000
+LWA_ALPHA = 0x00000002
+SM_CXSCREEN = 0
 CREATE_NO_WINDOW = 0x08000000
 DETACHED_PROCESS = 0x00000008
 
@@ -212,15 +218,111 @@ def run_lol_watcher() -> None:
         was_running = is_running
 
 
+def _apply_overlay_win32_style(alpha: int = 220) -> None:
+    """Hace la ventana HUD flotante: siempre encima, semitransparente y oculta de la barra de tareas."""
+    user32 = ctypes.windll.user32
+    hwnd = 0
+    for _ in range(50):
+        hwnd = user32.FindWindowW(None, OVERLAY_TITLE)
+        if hwnd:
+            break
+        time.sleep(0.08)
+    if not hwnd:
+        return
+    try:
+        ex_style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+        user32.SetWindowLongW(hwnd, GWL_EXSTYLE, ex_style | WS_EX_TOOLWINDOW | WS_EX_LAYERED)
+        user32.SetLayeredWindowAttributes(hwnd, 0, max(90, min(255, int(alpha))), LWA_ALPHA)
+        user32.SetWindowPos(
+            hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+        )
+    except Exception:
+        pass
+
+
 class DesktopAPI:
     """Funciones nativas expuestas al frontend cuando corre como app de escritorio."""
 
-    def __init__(self) -> None:
+    def __init__(self, base_url: str = "http://127.0.0.1:8080") -> None:
         self._window = None
+        self._overlay_window = None
+        self._base_url = base_url
         self._on_top = False
 
     def set_window(self, window) -> None:
         self._window = window
+
+    def get_overlay_open(self) -> bool:
+        try:
+            return bool(ctypes.windll.user32.FindWindowW(None, OVERLAY_TITLE))
+        except Exception:
+            return False
+
+    def toggle_overlay(self) -> bool:
+        """Abre o cierra el mini-HUD flotante de Flashes enemigos sobre LoL (Borderless)."""
+        if self.get_overlay_open():
+            self.close_overlay()
+            return False
+
+        import webview
+
+        try:
+            screen_w = ctypes.windll.user32.GetSystemMetrics(SM_CXSCREEN) or 1920
+        except Exception:
+            screen_w = 1920
+
+        hud_w, hud_h = 158, 216
+        pos_x = max(20, screen_w - hud_w - 14)
+        pos_y = 150
+
+        self._overlay_window = webview.create_window(
+            title=OVERLAY_TITLE,
+            url=f"{self._base_url}/overlay",
+            js_api=self,
+            width=hud_w,
+            height=hud_h,
+            x=pos_x,
+            y=pos_y,
+            background_color="#070d16",
+            resizable=False,
+            frameless=True,
+            easy_drag=False,
+            on_top=True,
+        )
+        threading.Thread(target=_apply_overlay_win32_style, args=(220,), daemon=True).start()
+        return True
+
+    def close_overlay(self) -> bool:
+        """Cierra el mini-HUD flotante limpiamente."""
+        def _do() -> None:
+            hwnd = ctypes.windll.user32.FindWindowW(None, OVERLAY_TITLE)
+            if hwnd:
+                ctypes.windll.user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+        self._overlay_window = None
+        threading.Thread(target=_do, daemon=True).start()
+        return False
+
+    def set_overlay_height(self, height: int) -> None:
+        """Cambia la altura del mini-HUD (colapsado 30px / expandido 216px)."""
+        h = max(28, min(320, int(height)))
+        def _do() -> None:
+            user32 = ctypes.windll.user32
+            hwnd = user32.FindWindowW(None, OVERLAY_TITLE)
+            if hwnd:
+                user32.SetWindowPos(
+                    hwnd, HWND_TOPMOST, 0, 0, 158, h, SWP_NOMOVE | SWP_NOACTIVATE
+                )
+        threading.Thread(target=_do, daemon=True).start()
+
+    def set_overlay_opacity(self, alpha: int) -> None:
+        """Ajusta la transparencia del mini-HUD en vivo (90..255)."""
+        a = max(90, min(255, int(alpha)))
+        def _do() -> None:
+            user32 = ctypes.windll.user32
+            hwnd = user32.FindWindowW(None, OVERLAY_TITLE)
+            if hwnd:
+                user32.SetLayeredWindowAttributes(hwnd, 0, a, LWA_ALPHA)
+        threading.Thread(target=_do, daemon=True).start()
 
     def get_auto_launch(self) -> bool:
         return is_auto_launch_enabled()
@@ -275,11 +377,15 @@ class DesktopAPI:
         return target_max
 
     def win_close(self) -> None:
-        """Cierra la ventana nativa limpiamente."""
+        """Cierra la ventana nativa (y el mini-HUD si estaba abierto) limpiamente."""
         def _do() -> None:
-            hwnd = ctypes.windll.user32.FindWindowW(None, WINDOW_TITLE)
+            user32 = ctypes.windll.user32
+            hud_hwnd = user32.FindWindowW(None, OVERLAY_TITLE)
+            if hud_hwnd:
+                user32.PostMessageW(hud_hwnd, WM_CLOSE, 0, 0)
+            hwnd = user32.FindWindowW(None, WINDOW_TITLE)
             if hwnd:
-                ctypes.windll.user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+                user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
         threading.Thread(target=_do, daemon=True).start()
 
 
@@ -333,7 +439,7 @@ def main() -> None:
         time.sleep(0.2)
 
     # 2. Crear ventana nativa frameless (barra Hextech gamer propia)
-    api = DesktopAPI()
+    api = DesktopAPI(base_url=url)
     window = webview.create_window(
         title=WINDOW_TITLE,
         url=url,

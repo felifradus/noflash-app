@@ -2456,11 +2456,42 @@ class DraftAnalyzer {
     }
   }
 
-  /* ── Botones nativos de escritorio (Siempre encima + Auto-abrir con LoL) ── */
+  /* ── Botones nativos de escritorio (Siempre encima + Auto-abrir con LoL + HUD Flotante) ── */
   initDesktopPinButton() {
+    const toggleHud = async () => {
+      const isEnDesk = () => typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+      const btnHud = document.getElementById('btn-hud-overlay');
+      if (window.pywebview?.api?.toggle_overlay) {
+        try {
+          const isOpen = await window.pywebview.api.toggle_overlay();
+          if (btnHud) btnHud.classList.toggle('connected', isOpen);
+          this.showToast(
+            isOpen
+              ? (isEnDesk()
+                ? 'Floating Flash HUD active! Use LoL Borderless mode to see it over the game.'
+                : '¡HUD flotante activado! Usá LoL en modo Sin bordes para verlo arriba del juego.')
+              : (isEnDesk() ? 'Floating Flash HUD closed.' : 'HUD flotante cerrado.'),
+            'info'
+          );
+        } catch (err) {
+          console.error('Error toggling HUD overlay:', err);
+        }
+      } else {
+        window.open('/overlay', 'NoFlashHUD', 'width=168,height=228,menubar=no,toolbar=no,location=no,status=no');
+      }
+    };
+
+    document.getElementById('btn-ingame-hud')?.addEventListener('click', toggleHud);
+
     const setupDesktop = async () => {
       if (!window.pywebview || !window.pywebview.api) return;
       const isEnDesk = () => typeof getCurrentLang === 'function' && getCurrentLang() !== 'es';
+
+      const btnHud = document.getElementById('btn-hud-overlay');
+      if (btnHud && typeof window.pywebview.api.toggle_overlay === 'function') {
+        btnHud.style.display = 'inline-flex';
+        btnHud.addEventListener('click', toggleHud);
+      }
 
       if (this.btnPinWindow) {
         this.btnPinWindow.style.display = 'inline-flex';

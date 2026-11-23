@@ -4932,3 +4932,31 @@ button, select, input {
 .re-actions button {
   flex: 1;
 }
+
+
+/* ── Floating In-Game Flash HUD titlebar button ── */
+.tb-hud-btn {
+  width: auto !important;
+  padding: 0 8px !important;
+  gap: 4px;
+  font-size: 0.7rem !important;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #f0e6d2 !important;
+  border-color: rgba(200, 170, 110, 0.35) !important;
+  background: rgba(200, 170, 110, 0.1) !important;
+}
+.tb-hud-btn i {
+  color: #0ac8b9;
+  font-size: 0.72rem;
+}
+.tb-hud-btn:hover {
+  border-color: #c8aa6e !important;
+  background: rgba(200, 170, 110, 0.22) !important;
+}
+.tb-hud-btn.connected {
+  border-color: #0ac8b9 !important;
+  background: rgba(10, 200, 185, 0.2) !important;
+  color: #7ef9ee !important;
+  box-shadow: 0 0 10px rgba(10, 200, 185, 0.25);
+}

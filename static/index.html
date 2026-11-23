@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=36">
+  <link rel="stylesheet" href="/static/css/style.css?v=37">
 </head>
 <body>
 
@@ -52,6 +52,9 @@
       </button>
       <button class="tb-util-btn" id="btn-reload-app" onclick="window.location.reload()" title="Reload UI">
         <i class="fa-solid fa-rotate-right"></i>
+      </button>
+      <button class="tb-util-btn tb-hud-btn" id="btn-hud-overlay" style="display:none;" title="Floating In-Game Flash HUD over LoL (requires Borderless mode)">
+        <i class="fa-solid fa-bolt"></i><span>HUD</span>
       </button>
       <button class="tb-util-btn" id="btn-auto-lol" style="display:none;" title="Auto-open NoFlash when LoL starts">
         <i class="fa-solid fa-rocket"></i>
@@ -485,7 +488,12 @@
 
           <!-- Tracker de Hechizos Enemigos -->
           <div class="ingame-card">
-            <h3 class="section-title"><i class="fa-solid fa-stopwatch"></i> <span data-i18n="ig_spells_title">Hechizos Enemigos (Click al gastar)</span></h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.35rem;">
+              <h3 class="section-title" style="margin:0;"><i class="fa-solid fa-stopwatch"></i> <span data-i18n="ig_spells_title">Hechizos Enemigos (Click al gastar)</span></h3>
+              <button type="button" class="btn-switch-account" id="btn-ingame-hud" title="Open mini floating HUD over LoL (Borderless mode)" style="font-size:0.74rem;padding:0.28rem 0.65rem;">
+                <i class="fa-solid fa-bolt"></i> Floating HUD
+              </button>
+            </div>
             <p class="coach-muted" style="margin-bottom:0.75rem;" data-i18n="ig_spells_hint">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
             <div id="ig-enemies-list" class="ig-enemies-list"></div>
           </div>
@@ -875,6 +883,6 @@
   <script src="/static/js/voice.js?v=34"></script>
   <script src="/static/js/riftdle.js?v=32"></script>
   <script src="/static/js/dodge_arena.js?v=4"></script>
-  <script src="/static/js/app.js?v=37"></script>
+  <script src="/static/js/app.js?v=38"></script>
 </body>
 </html>

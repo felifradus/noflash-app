@@ -142,6 +142,15 @@ async def serve_index() -> FileResponse:
     return FileResponse(str(index_path))
 
 
+@app.get("/overlay")
+async def serve_overlay() -> FileResponse:
+    """Sirve el mini-HUD flotante no invasivo para trackear Flashes enemigos."""
+    overlay_path = static_dir / "overlay.html"
+    if not overlay_path.exists():
+        raise HTTPException(status_code=404, detail="No se encontró overlay.html.")
+    return FileResponse(str(overlay_path))
+
+
 @app.get("/api/regions")
 async def get_regions() -> dict[str, Any]:
     """Retorna la lista de regiones/plataformas disponibles."""
