@@ -63,7 +63,7 @@ function displayName(ddName) {
 /* ── Data Dragon URL ── */
 function champImgUrl(championName) {
   const name = championName || 'Aatrox';
-  return `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/champion/${name}.png`;
+  return `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/champion/${name}.png`;
 }
 
 function spellImgUrl(spellLabel) {
@@ -77,7 +77,7 @@ function spellImgUrl(spellLabel) {
   else if (s.includes('fantasmal') || s.includes('ghost')) key = 'SummonerHaste';
   else if (s.includes('aplastar') || s.includes('smite')) key = 'SummonerSmite';
   else if (s.includes('curar') || s.includes('heal')) key = 'SummonerHeal';
-  return `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/spell/${key}.png`;
+  return `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/spell/${key}.png`;
 }
 
 function keystoneImgUrl(keystone) {
@@ -510,7 +510,7 @@ class DraftAnalyzer {
 
     // Ícono real del invocador (Data Dragon)
     if (this.playerProfileIconEl && player.profile_icon_id) {
-      this.playerProfileIconEl.src = `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/profileicon/${player.profile_icon_id}.png`;
+      this.playerProfileIconEl.src = `https://ddragon.leagueoflegends.com/cdn/16.23.1/img/profileicon/${player.profile_icon_id}.png`;
     }
 
     // Splash Art de fondo del mejor campeón del jugador (estilo Cliente de LoL)
