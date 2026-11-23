@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   NEW FEATURE: DODGE ARENA (60fps LoL Skillshot Survival + Flash)
+   NEW FEATURE: DODGE ARENA (60fps LoL Skillshot Survival + Flash + WebAudio SFX + APM)
    Right-Click / Left-Click or Cursor Follow + Press F / Space to FLASH!
    ═══════════════════════════════════════════════════════ */
 
@@ -15,12 +15,101 @@ const DODGE_RANKS = [
   { min: 8000, name: 'CHALLENGER', color: '#fde047' },
 ];
 
+/* ── Sintetizador WebAudio sutil (cero archivos externos, súper inmersivo) ── */
+class ArenaSFX {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+  }
+  _ensure() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.ctx = new AC();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  }
+  playFlash() {
+    const ctx = this._ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(1480, now + 0.14);
+    gain.gain.setValueAtTime(0.16, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.23);
+  }
+  playCloseDodge() {
+    const ctx = this._ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(780, now);
+    osc.frequency.exponentialRampToValueAtTime(1180, now + 0.11);
+    gain.gain.setValueAtTime(0.09, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.16);
+  }
+  playLaser() {
+    const ctx = this._ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(85, now + 0.28);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.31);
+  }
+  playHit() {
+    const ctx = this._ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 0.22);
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.25);
+  }
+  playRankUp() {
+    const ctx = this._ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.07);
+      gain.gain.setValueAtTime(0.10, now + i * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.22);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + i * 0.07); osc.stop(now + i * 0.07 + 0.24);
+    });
+  }
+}
+
 class WarmupHub {
   constructor() {
     this.tabs = document.querySelectorAll('#warmup-tabs .warmup-tab');
     this.panes = document.querySelectorAll('.warmup-pane');
     if (this.tabs.length === 0) return;
 
+    this.sfx = new ArenaSFX();
     this.tabs.forEach(tab => {
       tab.addEventListener('click', () => this.openMode(tab.dataset.mode));
     });
@@ -40,7 +129,7 @@ class WarmupHub {
     }
   }
 
-  /* ── DODGE ARENA ENGINE (60fps Canvas) ── */
+  /* ── DODGE ARENA ENGINE (60fps Canvas + SFX + APM + Trail + Rank-Ups) ── */
   initDodgeArena() {
     this.canvas = document.getElementById('dodge-canvas');
     if (!this.canvas) return;
@@ -61,7 +150,7 @@ class WarmupHub {
     this.microBest = this.bestScore;
     this.updateBestUI();
 
-    this.followMode = false; // false = LoL Click-to-Move, true = Cursor Follow
+    this.followMode = false;
     this.running = false;
     this.mouse = { x: this.W / 2, y: this.H / 2 };
 
@@ -87,11 +176,15 @@ class WarmupHub {
     };
 
     this.canvas.addEventListener('mousemove', (e) => {
-      this.mouse = getCanvasPos(e);
+      const pos = getCanvasPos(e);
       if (this.running && this.followMode) {
-        this.target.x = this.mouse.x;
-        this.target.y = this.mouse.y;
+        if (Math.hypot(pos.x - this.mouse.x, pos.y - this.mouse.y) > 22) {
+          this.actions += 0.35; // Contar cambios de dirección reales en Cursor Follow
+        }
+        this.target.x = pos.x;
+        this.target.y = pos.y;
       }
+      this.mouse = pos;
     });
 
     const onMoveClick = (e) => {
@@ -100,6 +193,7 @@ class WarmupHub {
       const pos = getCanvasPos(e);
       this.mouse = pos;
       this.target = { x: pos.x, y: pos.y };
+      this.actions += 1;
       this.ripples.push({ x: pos.x, y: pos.y, r: 4, maxR: 22, alpha: 0.9, color: '#22c55e' });
     };
     this.canvas.addEventListener('contextmenu', onMoveClick);
@@ -109,11 +203,23 @@ class WarmupHub {
       if (!this.running) return;
       if (e.code === 'KeyF' || e.code === 'Space') {
         e.preventDefault();
+        this.actions += 1;
         this.triggerFlash();
       }
     });
 
-    this._drawIdleBg();
+    this._drawIdleBg(0);
+  }
+
+  _syncPlayerChampAvatar() {
+    try {
+      const best = window.app?.state?.playerData?.analysis?.best_champions?.[0];
+      const cName = best?.champion || best?.champion_name;
+      if (cName && typeof champImgUrl === 'function') {
+        const nextUrl = champImgUrl(cName);
+        if (this.playerImg.src !== nextUrl) this.playerImg.src = nextUrl;
+      }
+    } catch {}
   }
 
   updateBestUI() {
@@ -132,21 +238,28 @@ class WarmupHub {
 
   startDodge() {
     this.stopDodge(false);
+    this._syncPlayerChampAvatar();
     this.running = true;
     this.startTime = performance.now();
     this.lastFrame = this.startTime;
     this.elapsed = 0;
     this.score = 0;
     this.hp = 3;
+    this.actions = 0;
+    this.closeDodges = 0;
+    this.clutchFlashes = 0;
+    this.lastRankName = 'IRON';
+    this.rankBanner = null;
     this.invulnUntil = 0;
     this.flashReadyAt = 0;
     this.shakeTime = 0;
     this.spawnTimer = 0.45;
-    this.luxTimer = 5.0;
-    this.ziggsTimer = 6.5;
+    this.luxTimer = 4.8;
+    this.ziggsTimer = 6.2;
 
-    this.player = { x: this.W / 2, y: this.H / 2, r: 17, speed: 305 };
+    this.player = { x: this.W / 2, y: this.H / 2, r: 18, speed: 310 };
     this.target = { x: this.W / 2, y: this.H / 2 };
+    this.trail = [];
     this.projectiles = [];
     this.lasers = [];
     this.aoes = [];
@@ -164,6 +277,8 @@ class WarmupHub {
     if (showGameOver && this.overlayEl) {
       const finalScore = Math.floor(this.score);
       const rank = this._getRank(finalScore);
+      const mins = Math.max(0.08, this.elapsed / 60);
+      const apm = Math.round(this.actions / mins);
       const isNewBest = finalScore > this.bestScore;
       if (isNewBest) {
         this.bestScore = finalScore;
@@ -173,10 +288,23 @@ class WarmupHub {
         this.updateBestUI();
       }
       const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+      const apmFlavor = apm >= 210
+        ? (isEn ? 'Korean Challenger hands!' : '¡Manos de Challenger coreano!')
+        : apm >= 140
+          ? (isEn ? 'Clean Master+ micro!' : '¡Micro súper limpio de Master+!')
+          : apm >= 85
+            ? (isEn ? 'Smooth, steady rhythm.' : 'Buen ritmo y control.')
+            : (isEn ? 'Warming up — click faster to sidestep!' : 'Entrando en calor — ¡clickeá más rápido para esquivar!');
+
       this.overlayEl.innerHTML = `
         <div class="dodge-overlay-badge">${isNewBest ? (isEn ? '🔥 NEW PERSONAL BEST!' : '🔥 ¡NUEVO RÉCORD!') : `🎖️ ${rank.name}`}</div>
         <h3 style="font-family:'Cinzel',serif;color:${rank.color};margin:0.25rem 0;">${finalScore} PTS · ${this.elapsed.toFixed(1)}s</h3>
-        <p style="margin:0.25rem 0 0.7rem;">${isEn ? `Rank reached: <strong style="color:${rank.color}">${rank.name}</strong> · Beat your score while waiting in queue!` : `Rango alcanzado: <strong style="color:${rank.color}">${rank.name}</strong> · ¡Superá tu récord mientras esperás cola!`}</p>
+        <div class="dodge-end-stats">
+          <div class="dodge-stat-box"><span>⚡ APM</span><strong>${apm}</strong></div>
+          <div class="dodge-stat-box"><span>💨 ${isEn ? 'Close Dodges' : 'Esquives Justos'}</span><strong>${this.closeDodges}</strong></div>
+          <div class="dodge-stat-box"><span>✨ ${isEn ? 'Clutch Flashes' : 'Flash Clutches'}</span><strong>${this.clutchFlashes}</strong></div>
+        </div>
+        <p style="margin:0.45rem 0 0.75rem;color:#cbd5e1;font-size:0.86rem;">${apmFlavor}</p>
         <button class="btn-analyze" id="btn-dodge-retry" style="max-width:220px;margin:0 auto;">
           <i class="fa-solid fa-rotate-right"></i> ${isEn ? 'Play Again' : 'Jugar otra vez'}
         </button>
@@ -191,11 +319,12 @@ class WarmupHub {
     if (now < this.flashReadyAt) return;
     this.flashReadyAt = now + 5500;
     this.invulnUntil = Math.max(this.invulnUntil, now + 260);
+    this.sfx.playFlash();
 
     const dx = this.mouse.x - this.player.x;
     const dy = this.mouse.y - this.player.y;
     const dist = Math.hypot(dx, dy) || 1;
-    const blink = Math.min(160, Math.max(95, dist));
+    const blink = Math.min(165, Math.max(95, dist));
     const oldX = this.player.x;
     const oldY = this.player.y;
 
@@ -204,32 +333,33 @@ class WarmupHub {
     this.target.x = this.player.x;
     this.target.y = this.player.y;
 
-    this.ripples.push({ x: oldX, y: oldY, r: 8, maxR: 42, alpha: 1, color: '#fde047' });
-    this.ripples.push({ x: this.player.x, y: this.player.y, r: 6, maxR: 48, alpha: 1, color: '#f6d365' });
-    for (let i = 0; i < 18; i++) {
+    this.ripples.push({ x: oldX, y: oldY, r: 8, maxR: 46, alpha: 1, color: '#fde047' });
+    this.ripples.push({ x: this.player.x, y: this.player.y, r: 6, maxR: 52, alpha: 1, color: '#f6d365' });
+    for (let i = 0; i < 22; i++) {
       const ang = Math.random() * Math.PI * 2;
-      const spd = 60 + Math.random() * 140;
+      const spd = 60 + Math.random() * 155;
       this.particles.push({
         x: this.player.x, y: this.player.y,
         vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-        life: 0.45, color: i % 2 === 0 ? '#fde047' : '#0ac8b9', size: 3.5,
+        life: 0.48, color: i % 2 === 0 ? '#fde047' : '#0ac8b9', size: 4,
       });
     }
 
-    const nearDanger = this.projectiles.some(p => Math.hypot(p.x - oldX, p.y - oldY) < 95)
-      || this.aoes.some(a => Math.hypot(a.x - oldX, a.y - oldY) < a.maxR + 18)
-      || this.lasers.some(l => this._pointLineDist(oldX, oldY, l.x1, l.y1, l.x2, l.y2) < 42);
+    const nearDanger = this.projectiles.some(p => Math.hypot(p.x - oldX, p.y - oldY) < 100)
+      || this.aoes.some(a => Math.hypot(a.x - oldX, a.y - oldY) < a.maxR + 20)
+      || this.lasers.some(l => this._pointLineDist(oldX, oldY, l.x1, l.y1, l.x2, l.y2) < 46);
     if (nearDanger) {
       this.score += 150;
-      this.floatTexts.push({ x: this.player.x, y: this.player.y - 24, text: '✨ CLUTCH FLASH +150', color: '#fde047', life: 1.0 });
+      this.clutchFlashes += 1;
+      this.floatTexts.push({ x: this.player.x, y: this.player.y - 26, text: '✨ CLUTCH FLASH +150', color: '#fde047', life: 1.0 });
     }
   }
 
   _spawnProjectile(diff) {
     const types = [
-      { kind: 'blitz', name: 'Blitz Q', r: 12, speed: 340 + diff * 28, color: '#f6d365', glow: '#0ac8b9' },
-      { kind: 'morg',  name: 'Morg Q',  r: 18, speed: 225 + diff * 20, color: '#c084fc', glow: '#9333ea' },
-      { kind: 'ashe',  name: 'Ashe R',  r: 16, speed: 295 + diff * 24, color: '#38bdf8', glow: '#e0f2fe' },
+      { kind: 'blitz', name: 'BLITZ Q', r: 12, speed: 345 + diff * 28, color: '#f6d365', glow: '#0ac8b9' },
+      { kind: 'morg',  name: 'MORG Q',  r: 18, speed: 225 + diff * 20, color: '#c084fc', glow: '#9333ea' },
+      { kind: 'ashe',  name: 'ASHE R',  r: 16, speed: 300 + diff * 24, color: '#38bdf8', glow: '#e0f2fe' },
     ];
     const t = types[Math.floor(Math.random() * types.length)];
     const side = Math.floor(Math.random() * 4);
@@ -268,6 +398,7 @@ class WarmupHub {
       age: 0,
       width: 30,
       hitDone: false,
+      sfxPlayed: false,
     });
   }
 
@@ -296,7 +427,8 @@ class WarmupHub {
     this.hp -= 1;
     this.invulnUntil = now + 950;
     this.shakeTime = 0.28;
-    for (let i = 0; i < 16; i++) {
+    this.sfx.playHit();
+    for (let i = 0; i < 18; i++) {
       const a = Math.random() * Math.PI * 2;
       const s = 70 + Math.random() * 140;
       this.particles.push({
@@ -318,6 +450,18 @@ class WarmupHub {
     const diff = Math.min(9, this.elapsed / 9);
     this.score += dt * (45 + diff * 12);
 
+    // Check Rank Promotion!
+    const curRank = this._getRank(Math.floor(this.score));
+    if (curRank.name !== this.lastRankName) {
+      this.lastRankName = curRank.name;
+      this.rankBanner = { text: `PROMOTED TO ${curRank.name}!`, color: curRank.color, life: 1.6 };
+      this.sfx.playRankUp();
+    }
+    if (this.rankBanner) {
+      this.rankBanner.life -= dt;
+      if (this.rankBanner.life <= 0) this.rankBanner = null;
+    }
+
     const dx = this.target.x - this.player.x;
     const dy = this.target.y - this.player.y;
     const dist = Math.hypot(dx, dy);
@@ -325,6 +469,11 @@ class WarmupHub {
       const step = Math.min(dist, this.player.speed * dt);
       this.player.x += (dx / dist) * step;
       this.player.y += (dy / dist) * step;
+      this.trail.push({ x: this.player.x, y: this.player.y, life: 0.25 });
+    }
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      this.trail[i].life -= dt;
+      if (this.trail[i].life <= 0) this.trail.splice(i, 1);
     }
 
     this.spawnTimer -= dt;
@@ -357,6 +506,8 @@ class WarmupHub {
       if (!p.closeAwarded && d < p.r + this.player.r + 22) {
         p.closeAwarded = true;
         this.score += 100;
+        this.closeDodges += 1;
+        this.sfx.playCloseDodge();
         this.floatTexts.push({ x: this.player.x, y: this.player.y - 22, text: '⚡ CLOSE DODGE +100', color: '#5eead4', life: 0.85 });
       }
       if (p.x < -60 || p.x > this.W + 60 || p.y < -60 || p.y > this.H + 60) {
@@ -367,6 +518,10 @@ class WarmupHub {
     for (let i = this.lasers.length - 1; i >= 0; i--) {
       const l = this.lasers[i];
       l.age += dt;
+      if (l.age >= l.warnTime && !l.sfxPlayed) {
+        l.sfxPlayed = true;
+        this.sfx.playLaser();
+      }
       if (l.age >= l.warnTime && l.age < l.warnTime + l.fireTime && !l.hitDone) {
         const d = this._pointLineDist(this.player.x, this.player.y, l.x1, l.y1, l.x2, l.y2);
         if (d < l.width / 2 + this.player.r - 4) {
@@ -433,16 +588,31 @@ class WarmupHub {
     }
   }
 
-  _drawIdleBg() {
+  _drawIdleBg(now) {
     const ctx = this.ctx;
     if (!ctx) return;
-    const grad = ctx.createRadialGradient(this.W / 2, this.H / 2, 30, this.W / 2, this.H / 2, this.W * 0.65);
-    grad.addColorStop(0, '#0a2038');
+    const grad = ctx.createRadialGradient(this.W / 2, this.H / 2, 20, this.W / 2, this.H / 2, this.W * 0.65);
+    grad.addColorStop(0, '#0d2642');
+    grad.addColorStop(0.6, '#061529');
     grad.addColorStop(1, '#020812');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, this.W, this.H);
 
-    ctx.strokeStyle = 'rgba(200, 155, 60, 0.07)';
+    // Anillo rúnico central estilo Grieta del Invocador
+    ctx.save();
+    ctx.strokeStyle = 'rgba(200, 155, 60, 0.14)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(this.W / 2, this.H / 2, 115, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(10, 200, 185, 0.10)';
+    ctx.setLineDash([12, 12]);
+    ctx.beginPath();
+    ctx.arc(this.W / 2, this.H / 2, 165, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(200, 155, 60, 0.05)';
     ctx.lineWidth = 1;
     for (let x = 0; x < this.W; x += 45) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.H); ctx.stroke();
@@ -456,9 +626,9 @@ class WarmupHub {
     const ctx = this.ctx;
     ctx.save();
     if (this.shakeTime > 0) {
-      ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+      ctx.translate((Math.random() - 0.5) * 11, (Math.random() - 0.5) * 11);
     }
-    this._drawIdleBg();
+    this._drawIdleBg(now);
 
     for (const a of this.aoes) {
       const pct = Math.min(1, a.age / a.warnTime);
@@ -469,7 +639,6 @@ class WarmupHub {
       ctx.strokeStyle = a.exploded ? '#fde047' : 'rgba(248, 113, 113, 0.75)';
       ctx.lineWidth = 2;
       ctx.stroke();
-
       if (!a.exploded) {
         ctx.beginPath();
         ctx.arc(a.x, a.y, a.maxR * pct, 0, Math.PI * 2);
@@ -488,7 +657,7 @@ class WarmupHub {
       } else {
         ctx.strokeStyle = 'rgba(253, 224, 71, 0.95)';
         ctx.shadowColor = '#f6d365';
-        ctx.shadowBlur = 22;
+        ctx.shadowBlur = 24;
         ctx.lineWidth = l.width;
         ctx.beginPath(); ctx.moveTo(l.x1, l.y1); ctx.lineTo(l.x2, l.y2); ctx.stroke();
         ctx.strokeStyle = '#ffffff';
@@ -508,15 +677,23 @@ class WarmupHub {
       ctx.globalAlpha = 1;
     }
 
+    // Estela suave de movimiento del campeón
+    for (const tr of this.trail) {
+      ctx.beginPath();
+      ctx.arc(tr.x, tr.y, 10 * (tr.life / 0.25), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(10, 200, 185, ${tr.life * 0.8})`;
+      ctx.fill();
+    }
+
     for (const p of this.projectiles) {
       ctx.save();
       ctx.shadowColor = p.glow;
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 16;
       if (p.kind === 'blitz') {
-        ctx.strokeStyle = 'rgba(246, 211, 101, 0.45)';
+        ctx.strokeStyle = 'rgba(246, 211, 101, 0.5)';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(p.x - Math.cos(p.ang) * 42, p.y - Math.sin(p.ang) * 42);
+        ctx.moveTo(p.x - Math.cos(p.ang) * 44, p.y - Math.sin(p.ang) * 44);
         ctx.lineTo(p.x, p.y);
         ctx.stroke();
       }
@@ -566,6 +743,19 @@ class WarmupHub {
       ctx.fillText(ft.text, ft.x, ft.y);
     }
     ctx.globalAlpha = 1;
+
+    // Banner de Promoción de Rango en vivo
+    if (this.rankBanner) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, this.rankBanner.life);
+      ctx.font = '800 22px Cinzel, Georgia, serif';
+      ctx.fillStyle = this.rankBanner.color;
+      ctx.shadowColor = this.rankBanner.color;
+      ctx.shadowBlur = 14;
+      ctx.fillText(this.rankBanner.text, this.W / 2, 46);
+      ctx.restore();
+    }
+
     ctx.restore();
   }
 
@@ -594,7 +784,6 @@ class WarmupHub {
       });
     });
 
-    // Tras 30s sin actividad en búsqueda/análisis (no en draft ni en partida), ofrecer Dodge Arena NEW + Flashdle
     setInterval(() => {
       if (this.idleShown) return;
       const curView = window.app?.state?.currentView;
