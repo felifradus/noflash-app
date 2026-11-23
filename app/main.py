@@ -6,6 +6,7 @@ Sirve la interfaz web y expone los endpoints de análisis y draft.
 import asyncio
 import logging
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any, Optional
@@ -95,7 +96,10 @@ match_cache = MatchCache()
 
 def _get_api_key() -> str | None:
     """Obtiene la API key de las variables de entorno o del archivo .env."""
-    for candidate in (BASE_DIR / ".env", Path.cwd() / ".env"):
+    candidates = [BASE_DIR / ".env", Path.cwd() / ".env"]
+    if getattr(sys, "frozen", False):
+        candidates.insert(0, Path(sys.executable).resolve().parent / ".env")
+    for candidate in candidates:
         if candidate.exists():
             try:
                 from dotenv import load_dotenv
@@ -143,17 +147,28 @@ async def get_regions() -> dict[str, Any]:
 
 @app.get("/api/champions")
 async def get_champions() -> dict[str, Any]:
-    """Retorna la lista de campeones con sus datos/tags."""
-    champions = []
+    """Retorna la lista limpia y deduplicada de todos los campeones oficiales (Data Dragon IDs)."""
+    alias_to_dd = {"wukong": "MonkeyKing", "nunuwillump": "Nunu", "renataglasc": "Renata"}
+    seen: dict[str, dict[str, Any]] = {}
+
     for name, tags in CHAMPION_TAGS.items():
-        if isinstance(tags, dict):
-            champions.append({
-                "name": name,
-                "roles": tags.get("roles", []),
-                "damage": tags.get("damage", "mixed"),
-                "class": tags.get("class", []),
-            })
-    champions.sort(key=lambda c: c["name"])
+        if not isinstance(tags, dict):
+            continue
+        norm = re.sub(r"[^a-z0-9]", "", name.lower())
+        norm = alias_to_dd.get(norm, norm).lower()
+        is_clean_dd = bool(re.fullmatch(r"[A-Za-z0-9]+", name)) and name.lower() != "wukong"
+
+        entry = {
+            "name": name,
+            "roles": tags.get("roles", []),
+            "damage": tags.get("damage", "mixed"),
+            "class": tags.get("class", []),
+        }
+        # Preferir siempre la clave limpia oficial de Data Dragon (sin espacios ni apóstrofes)
+        if norm not in seen or (is_clean_dd and not re.fullmatch(r"[A-Za-z0-9]+", seen[norm]["name"])):
+            seen[norm] = entry
+
+    champions = sorted(seen.values(), key=lambda c: c["name"])
     return {"champions": champions}
 
 
