@@ -404,6 +404,35 @@ async def get_live_game(lang: str = "en") -> dict[str, Any]:
     return await live_game_monitor.get_live_state(lang=lang)
 
 
+class VoiceCommandRequest(BaseModel):
+    audio_b64: str
+    lang: str = "es-AR"
+    my_position: str = ""
+    enemies: list[dict[str, Any]] = Field(default_factory=list)
+
+
+@app.post("/api/voice-command")
+async def process_voice_command(req: VoiceCommandRequest) -> dict[str, Any]:
+    """
+    Reconoce comandos de voz cortos del jugador (ej: 'Mid no flash', 'Jinx sin flash', 'No flash')
+    y devuelve qué hechizo enemigo iniciar en el Mini-HUD. 100% input manual del jugador.
+    """
+    import asyncio
+    import base64
+    from app.voice_commands import parse_voice_command, transcribe_wav_bytes
+
+    try:
+        wav_bytes = base64.b64decode(req.audio_b64)
+    except Exception:
+        return {"matched": False, "transcript": ""}
+
+    transcript = await asyncio.to_thread(transcribe_wav_bytes, wav_bytes, req.lang)
+    if not transcript:
+        return {"matched": False, "transcript": ""}
+
+    return parse_voice_command(transcript, req.enemies, my_position=req.my_position)
+
+
 # ── Global Dodge Arena Leaderboard (SQLite + Cloud Proxy a Render) ──
 import sqlite3
 from datetime import datetime, timezone

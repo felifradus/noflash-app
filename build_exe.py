@@ -50,6 +50,10 @@ def main() -> None:
         "edge_tts",
         "--hidden-import",
         "webview",
+        "--hidden-import",
+        "speech_recognition",
+        "--collect-data",
+        "speech_recognition",
         str(ROOT / "desktop_app.py"),
     ]
     print("Compilando NoFlash.exe...")
