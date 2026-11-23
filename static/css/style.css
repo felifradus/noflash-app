@@ -3467,3 +3467,217 @@ body {
   font-size: 0.84rem !important;
   border-radius: 9px !important;
 }
+
+/* ═══════════════════════════════════════════════════════
+   HEXTECH / LEAGUE OF LEGENDS CLIENT VIBE UPGRADE
+   ═══════════════════════════════════════════════════════ */
+
+/* Fondo atmosférico Runeterra / Hextech */
+body {
+  background-color: #010a13;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(10, 200, 185, 0.11), transparent 65%),
+    radial-gradient(ellipse 65% 45% at 85% 15%, rgba(200, 155, 60, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 15% 85%, rgba(10, 50, 60, 0.25), transparent 65%),
+    linear-gradient(180deg, #061121 0%, #010a13 55%, #030c18 100%);
+  background-attachment: fixed;
+}
+
+/* Tipografía Runeterra (Cinzel) en lugar de sci-fi genérico */
+.header-title,
+.search-heading,
+.section-title,
+.coach-box-title,
+.gameplan-title,
+.modal-hero-info h2,
+.ingame-waiting-card h3 {
+  font-family: 'Cinzel', Georgia, serif !important;
+  letter-spacing: 0.06em;
+}
+
+.header-title {
+  background: linear-gradient(180deg, #f0e6d2 0%, #c89b3c 65%, #9c7426 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-transform: uppercase;
+  filter: drop-shadow(0 0 10px rgba(200, 155, 60, 0.3));
+}
+
+/* Header estilo Cliente Oficial de LoL */
+.app-header {
+  background: linear-gradient(180deg, rgba(9, 20, 40, 0.96) 0%, rgba(1, 10, 19, 0.94) 100%) !important;
+  border-bottom: 1px solid rgba(200, 155, 60, 0.42) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.65), inset 0 -1px 0 rgba(240, 230, 210, 0.08);
+}
+
+.nav-tab {
+  position: relative;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.nav-tab:hover:not(:disabled) {
+  color: #f0e6d2 !important;
+  background: rgba(200, 155, 60, 0.10) !important;
+}
+
+.nav-tab.active {
+  color: #f0e6d2 !important;
+  background: linear-gradient(180deg, rgba(200, 155, 60, 0.16), rgba(200, 155, 60, 0.04)) !important;
+  box-shadow: inset 0 -2px 0 #c89b3c !important;
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: #f0e6d2;
+  border: 1px solid #c89b3c;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 0 0 8px rgba(200, 155, 60, 0.9);
+}
+
+/* Pantalla de búsqueda con Splash Art épico de LoL + marco Hextech */
+.search-hero {
+  position: relative;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 155, 60, 0.35);
+  background:
+    linear-gradient(180deg, rgba(1, 10, 19, 0.76) 0%, rgba(9, 20, 40, 0.88) 55%, rgba(1, 10, 19, 0.96) 100%),
+    url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Sylas_0.jpg') center 20% / cover no-repeat;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(240, 230, 210, 0.06);
+}
+
+.search-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c89b3c, #f0e6d2, #c89b3c, transparent);
+  pointer-events: none;
+}
+
+.search-logo {
+  border: 2px solid #c89b3c;
+  box-shadow: 0 0 32px rgba(10, 200, 185, 0.35), 0 0 18px rgba(200, 155, 60, 0.45) !important;
+  background: radial-gradient(circle, #0a323c 0%, #010a13 100%) !important;
+}
+
+.search-heading {
+  font-size: 1.95rem !important;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #ffffff 0%, #f0e6d2 55%, #c89b3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.search-form {
+  background: rgba(9, 20, 40, 0.82);
+  border: 1px solid rgba(200, 155, 60, 0.36);
+  border-radius: 12px;
+  padding: 1.45rem 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(240, 230, 210, 0.08);
+}
+
+/* Botón estilo "PLAY / FIND MATCH" oficial del cliente de LoL */
+.btn-analyze {
+  font-family: 'Cinzel', Georgia, serif !important;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: linear-gradient(180deg, #1e2328 0%, #0a323c 100%) !important;
+  border: 2px solid #c89b3c !important;
+  color: #f0e6d2 !important;
+  box-shadow: 0 0 18px rgba(10, 200, 185, 0.22), inset 0 0 12px rgba(10, 200, 185, 0.14);
+  transition: all 0.2s ease !important;
+}
+
+.btn-analyze:hover {
+  background: linear-gradient(180deg, #0a323c 0%, #0ac8b9 140%) !important;
+  border-color: #f0e6d2 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 26px rgba(10, 200, 185, 0.5), 0 0 14px rgba(200, 155, 60, 0.45) !important;
+  transform: translateY(-1px);
+}
+
+/* Paneles Hextech con borde metálico dorado y brillo interno */
+.coach-panel,
+.draft-board,
+.analysis-summary,
+.ingame-waiting-card,
+.riftdle-wrapper,
+.champ-card,
+.rec-card {
+  background: linear-gradient(160deg, rgba(13, 27, 46, 0.94) 0%, rgba(7, 16, 30, 0.96) 100%);
+  border: 1px solid rgba(200, 155, 60, 0.30);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(240, 230, 210, 0.08);
+}
+
+.champ-card:hover,
+.rec-card:hover {
+  border-color: rgba(200, 155, 60, 0.72);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 18px rgba(200, 155, 60, 0.18);
+}
+
+/* Títulos de sección con ornamento dorado */
+.section-title {
+  color: #f0e6d2;
+  text-transform: uppercase;
+  font-size: 0.98rem;
+}
+
+.section-title i {
+  color: #c89b3c;
+  filter: drop-shadow(0 0 6px rgba(200, 155, 60, 0.45));
+}
+
+/* Botones de Rol con estética de medallón Hextech */
+.role-btn.active,
+.role-tab.active {
+  background: linear-gradient(180deg, rgba(200, 155, 60, 0.28), rgba(10, 50, 60, 0.55)) !important;
+  border-color: #c89b3c !important;
+  color: #f0e6d2 !important;
+  box-shadow: 0 0 14px rgba(200, 155, 60, 0.28);
+}
+
+/* Draft Champ Select: Lado Azul (Aliados) vs Lado Rojo (Enemigos) */
+.ally-team .pick-slot {
+  border-color: rgba(10, 200, 185, 0.35);
+}
+.ally-team .pick-slot:hover {
+  border-color: #0ac8b9;
+  box-shadow: 0 0 14px rgba(10, 200, 185, 0.3);
+}
+.enemy-team .pick-slot {
+  border-color: rgba(233, 69, 96, 0.35);
+}
+.enemy-team .pick-slot:hover {
+  border-color: #e94560;
+  box-shadow: 0 0 14px rgba(233, 69, 96, 0.3);
+}
+
+/* Retratos de campeón con marco dorado metálico */
+.player-avatar,
+.rec-champ-icon,
+.champ-icon-img {
+  border: 2px solid #c89b3c !important;
+  box-shadow: 0 0 12px rgba(200, 155, 60, 0.25);
+}
+
+/* Banner automático con estética Hextech Teal + Gold */
+.auto-draft-banner {
+  background: linear-gradient(90deg, rgba(10, 50, 60, 0.65), rgba(9, 20, 40, 0.85), rgba(200, 155, 60, 0.14)) !important;
+  border: 1px solid rgba(10, 200, 185, 0.38) !important;
+}
