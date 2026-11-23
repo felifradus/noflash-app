@@ -617,6 +617,8 @@ class DraftAnalyzer {
     this.poolDepthEl.textContent = depth;
 
     // Render Pulso de Sesión (Anti-Tilt) + Errores recientes
+    this.renderPlayerVibeAndTrophies(data, globalWr, totalAnalyzed);
+
     const mc = analysis.mental_check;
     const mentalSection = document.getElementById('mental-section');
     if (mc && mentalSection) {
@@ -808,6 +810,112 @@ class DraftAnalyzer {
       : 'Click para ver análisis detallado de este campeón';
     card.addEventListener('click', () => this.openChampionModal(champName));
     return card;
+  }
+
+  /* ── Refuerzo Positivo: Bienvenida, Racha Diaria y Trofeos de la Grieta ── */
+  _getDailyStreak() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastDay = localStorage.getItem('NoFlash_last_day');
+      let streak = parseInt(localStorage.getItem('NoFlash_daily_streak') || '0', 10);
+      if (lastDay !== today) {
+        const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        streak = (lastDay === yest) ? streak + 1 : 1;
+        localStorage.setItem('NoFlash_last_day', today);
+        localStorage.setItem('NoFlash_daily_streak', String(streak));
+      }
+      return Math.max(1, streak);
+    } catch {
+      return 1;
+    }
+  }
+
+  renderPlayerVibeAndTrophies(data, globalWr, totalAnalyzed) {
+    const bar = document.getElementById('player-vibe-bar');
+    const greetEl = document.getElementById('vibe-greeting');
+    const streakEl = document.getElementById('daily-streak-pill');
+    const trophiesEl = document.getElementById('trophies-row');
+    if (!bar || !greetEl || !trophiesEl) return;
+
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+    const player = data.player || {};
+    const analysis = data.analysis || data;
+    const champStats = analysis.champion_stats || {};
+    const bestChamps = analysis.best_champions || [];
+    const mc = analysis.mental_check || {};
+    const name = player.game_name || 'Summoner';
+
+    const dailyStreak = this._getDailyStreak();
+    if (streakEl) {
+      streakEl.textContent = isEn ? `🔥 Day ${dailyStreak} Streak` : `🔥 Racha Día ${dailyStreak}`;
+    }
+
+    const top = bestChamps[0];
+    const topName = top ? displayName(top.champion || top.champion_name) : '';
+    const topStats = top ? champStats[top.champion || top.champion_name] : null;
+    const wrNum = parseFloat(globalWr);
+
+    let msg = '';
+    if (mc.status === 'hot' || (mc.win_streak || 0) >= 3) {
+      msg = isEn
+        ? `🔥 You're on fire, ${name}! Keep that momentum rolling — you're in peak carry form.`
+        : `🔥 ¡Estás prendido fuego, ${name}! Aprovechá este momentum que venís imparable.`;
+    } else if (mc.status === 'tilt' || mc.status === 'caution') {
+      msg = isEn
+        ? `Fresh lobby, clean mental, ${name}. Rough streaks happen to every high-elo player — you've got this.`
+        : `Lobby nuevo, mente limpia, ${name}. Las rachas duras le pasan a todos — hoy se remonta.`;
+    } else if (topName && topStats && topStats.games >= 5 && topStats.win_rate >= 52) {
+      msg = isEn
+        ? `Welcome back, ${name} — your ${topName} is sitting at ${topStats.win_rate}% WR over ${topStats.games} games. Let's climb.`
+        : `¡Qué bueno verte, ${name}! Tu ${topName} está en ${topStats.win_rate}% WR en ${topStats.games} partidas. A subir LP.`;
+    } else {
+      msg = isEn
+        ? `Welcome back, ${name} — ${totalAnalyzed || 0} games analyzed and ready. Let's make today's session clean.`
+        : `¡Bienvenido de vuelta, ${name}! ${totalAnalyzed || 0} partidas listas. Vamos por una gran sesión hoy.`;
+    }
+    greetEl.textContent = msg;
+
+    // Calcular Trofeos reales ganados por sus estadísticas
+    const trophies = [];
+    const allStats = Object.values(champStats);
+
+    const otp = allStats.find(s => (s.games || 0) >= 35 && (s.win_rate || 0) >= 52);
+    if (otp) trophies.push({ cls: 'gold', text: isEn ? '👑 One-Trick Legend' : '👑 Leyenda Main' });
+
+    if (!Number.isNaN(wrNum) && wrNum >= 53 && totalAnalyzed >= 15) {
+      trophies.push({ cls: 'cyan', text: isEn ? `⚡ Clutch Climber (${wrNum}% WR)` : `⚡ Escalador (${wrNum}% WR)` });
+    }
+
+    const bestCs = Math.max(0, ...allStats.filter(s => (s.games || 0) >= 5).map(s => Number(s.avg_cs_per_min || 0)));
+    if (bestCs >= 7.0) {
+      trophies.push({ cls: 'cyan', text: isEn ? `🎯 Farm Machine (${bestCs.toFixed(1)} CS/m)` : `🎯 Máquina de Farm (${bestCs.toFixed(1)} CS/m)` });
+    }
+
+    const bestDmg = Math.max(0, ...allStats.filter(s => (s.games || 0) >= 5).map(s => Number(s.avg_damage_share || 0)));
+    if (bestDmg >= 24) {
+      trophies.push({ cls: 'gold', text: isEn ? `💥 Team Carry (${Math.round(bestDmg)}% DMG)` : `💥 Carry de Daño (${Math.round(bestDmg)}% DMG)` });
+    }
+
+    const lowDeaths = allStats.some(s => (s.games || 0) >= 8 && Number(s.avg_deaths || 99) <= 4.3);
+    if (lowDeaths) {
+      trophies.push({ cls: 'green', text: isEn ? '🛡️ Unkillable Positioning' : '🛡️ Posicionamiento Sólido' });
+    }
+
+    const rdStreak = parseInt(localStorage.getItem('riftdle_streak') || '0', 10);
+    const microBest = parseInt(localStorage.getItem('NoFlash_micro_best') || '0', 10);
+    if (rdStreak >= 3 || microBest >= 18) {
+      trophies.push({ cls: 'purple', text: isEn ? '🎮 Warm-Up Grinder' : '🎮 Grinder de Warm-Up' });
+    }
+
+    if (trophies.length === 0) {
+      trophies.push({ cls: 'cyan', text: isEn ? '⚡ Ready to Climb' : '⚡ Listo para Subir' });
+    }
+
+    trophiesEl.innerHTML = trophies
+      .slice(0, 5)
+      .map(tr => `<span class="trophy-badge ${tr.cls}">${tr.text}</span>`)
+      .join('');
+    bar.style.display = 'flex';
   }
 
   /* ── Modal de Análisis Profundo por Campeón ── */
@@ -1595,6 +1703,12 @@ class DraftAnalyzer {
             this.lastLiveEnemiesKey = '';
             this.lastLiveScoutKey = '';
             this.lastLiveState = null;
+            this.showToast(
+              isEnLive
+                ? 'GG! Great match — take a 60s breather, grab some water, and queue up fresh.'
+                : '¡GG! Buena partida — tomate 60s, tomá agua y volvé fresco a la próxima.',
+              'success'
+            );
           }
           if (this.igWaitingEl) this.igWaitingEl.style.display = 'block';
           if (this.igActiveEl) this.igActiveEl.style.display = 'none';

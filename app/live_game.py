@@ -438,6 +438,24 @@ class LiveGameMonitor:
                 "message": f"You are sitting on {current_gold} gold. Look for a clean recall timing to spend it." if is_en else f"Tenés {current_gold} de oro en mano. Buscá un buen timing de back para convertirlo en stats.",
             })
 
+        # 5. Refuerzo positivo en partida (cuando venís carreando o farmeando increíble)
+        my_kills = int(my_scores.get("kills", 0))
+        my_deaths = int(my_scores.get("deaths", 0))
+        if my_kills >= 3 and my_deaths <= 1 and game_time >= 240:
+            alerts.append({
+                "id": "pos_snowball",
+                "type": "tip",
+                "title": "Clean Snowball" if is_en else "Buen Snowball",
+                "message": "Clean start — great tempo, keep snowballing." if is_en else "Gran arranque — excelente ritmo, seguí así.",
+            })
+        elif cs_per_min >= 8.0 and game_time >= 600:
+            alerts.append({
+                "id": "pos_farm",
+                "type": "tip",
+                "title": f"Elite Farm ({cs_per_min} CS/m)" if is_en else f"Farm Elite ({cs_per_min} CS/m)",
+                "message": "Great farm pace — you are ahead of the curve." if is_en else "Excelente ritmo de farm — venís por delante.",
+            })
+
         return {
             "in_game": True,
             "game_time": round(game_time, 1),
