@@ -510,8 +510,22 @@
         </div>
         <p class="coach-muted" style="margin:0 0 1rem;" data-i18n="hab_sub">Choose how often NoFlash reminds you to glance at the minimap, ward, or reset (only speaks during live matches).</p>
         <div class="habit-list" id="habit-list">
+          <!-- Smart Situational Gameplay Alerts (ON by default, non-invasive, triggered by actual game state) -->
+          <div class="habit-row habit-situational-row" data-habit="situational">
+            <label class="habit-toggle"><input type="checkbox" class="habit-cb" checked><span data-i18n="hab_situational">⚡ Smart Gameplay Triggers (High Gold, Objectives, Spikes)</span></label>
+            <div class="habit-controls">
+              <select class="habit-interval" id="habit-gold-threshold" title="High gold alert threshold">
+                <option value="1500">💰 1500g+</option>
+                <option value="1800" selected>💰 1800g+</option>
+                <option value="2200">💰 2200g+</option>
+                <option value="2600">💰 2600g+</option>
+              </select>
+              <button type="button" class="btn-habit-test"><i class="fa-solid fa-volume-high"></i> <span data-i18n="hab_test">Test</span></button>
+            </div>
+          </div>
+
           <div class="habit-row" data-habit="minimap">
-            <label class="habit-toggle"><input type="checkbox" class="habit-cb" checked><span data-i18n="hab_minimap">🗺️ Minimap Check</span></label>
+            <label class="habit-toggle"><input type="checkbox" class="habit-cb"><span data-i18n="hab_minimap">🗺️ Minimap Check</span></label>
             <div class="habit-controls">
               <select class="habit-interval">
                 <option value="45">45s</option>
@@ -525,7 +539,7 @@
           </div>
 
           <div class="habit-row" data-habit="wards">
-            <label class="habit-toggle"><input type="checkbox" class="habit-cb" checked><span data-i18n="hab_wards">👁️ Vision & Wards</span></label>
+            <label class="habit-toggle"><input type="checkbox" class="habit-cb"><span data-i18n="hab_wards">👁️ Vision &amp; Wards</span></label>
             <div class="habit-controls">
               <select class="habit-interval">
                 <option value="60">60s</option>
@@ -539,7 +553,7 @@
           </div>
 
           <div class="habit-row" data-habit="tempo">
-            <label class="habit-toggle"><input type="checkbox" class="habit-cb" checked><span data-i18n="hab_tempo">💰 Gold, Wave & Reset</span></label>
+            <label class="habit-toggle"><input type="checkbox" class="habit-cb"><span data-i18n="hab_tempo">💰 Gold, Wave &amp; Reset</span></label>
             <div class="habit-controls">
               <select class="habit-interval">
                 <option value="90">90s</option>
@@ -553,7 +567,7 @@
           </div>
 
           <div class="habit-row" data-habit="water">
-            <label class="habit-toggle"><input type="checkbox" class="habit-cb" checked><span data-i18n="hab_water">💧 Drink Water</span></label>
+            <label class="habit-toggle"><input type="checkbox" class="habit-cb"><span data-i18n="hab_water">💧 Drink Water</span></label>
             <div class="habit-controls">
               <select class="habit-interval">
                 <option value="300">5 min</option>

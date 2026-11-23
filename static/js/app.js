@@ -1824,8 +1824,12 @@ class DraftAnalyzer {
     const listEl = document.getElementById('habit-list');
     if (!listEl) return;
 
-    const STORAGE_KEY = 'NoFlash_habit_reminders_v1';
+    const STORAGE_KEY = 'NoFlash_habit_reminders_v2';
     const DIALOGUES = {
+      situational: {
+        en: ['You have over 1800 gold — look for a clean recall.', 'Objective spawning soon — prep river vision.'],
+        es: ['Tenés más de 1800 de oro — buscá un buen back.', 'Objetivo en breve — prepará visión en el río.'],
+      },
       minimap: {
         en: ['Minimap check.', 'Quick map glance.', 'Check minimap.'],
         es: ['Chequeo de mapa.', 'Mirá el minimapa.', 'Ojo al mapa.'],
@@ -1849,10 +1853,11 @@ class DraftAnalyzer {
     };
 
     const defaults = {
-      minimap: { enabled: true, interval: 60 },
-      wards: { enabled: true, interval: 120 },
-      tempo: { enabled: true, interval: 180 },
-      water: { enabled: true, interval: 600 },
+      situational: { enabled: true, interval: 1800 }, // interval = umbral de oro (1500/1800/2200/2600g)
+      minimap: { enabled: false, interval: 60 },
+      wards: { enabled: false, interval: 120 },
+      tempo: { enabled: false, interval: 180 },
+      water: { enabled: false, interval: 600 },
       mental: { enabled: false, interval: 300 },
       custom: { enabled: false, interval: 90, text: '' },
     };
@@ -1862,6 +1867,7 @@ class DraftAnalyzer {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (saved) cfg = { ...defaults, ...saved };
     } catch {}
+    this.habitCfg = cfg;
 
     const saveCfg = () => {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg)); } catch {}
@@ -1931,6 +1937,21 @@ class DraftAnalyzer {
       if (gTime < 90) return;
 
       const now = Date.now();
+      // Situational High-Gold Trigger (basado en gameplay real, no reloj fijo, máx 1 vez cada 3.5 min)
+      if (cfg.situational?.enabled) {
+        const goldThresh = Number(cfg.situational.interval) || 1800;
+        const curGold = Number(this.lastLiveState?.active_player?.current_gold || 0);
+        if (curGold >= goldThresh && gTime >= 240 && (!lastFired.situational_gold || now - lastFired.situational_gold >= 210000)) {
+          lastFired.situational_gold = now;
+          const isEs = typeof getCurrentLang === 'function' && getCurrentLang() === 'es';
+          const gMsg = isEs
+            ? `Tenés ${curGold} de oro sin gastar — buscá un buen back.`
+            : `You have ${curGold} unspent gold — look for a clean recall.`;
+          window.voiceCoach.speak(gMsg, { force: false });
+          return;
+        }
+      }
+
       for (const key of ['minimap', 'wards', 'tempo', 'water', 'mental', 'custom']) {
         const item = cfg[key];
         if (!item || !item.enabled) continue;
