@@ -74,10 +74,10 @@
         <option value="tr">TR</option>
       </select>
       <select class="lang-select voice-persona-select" id="voice-persona-select" title="Coach Voice / Voz del Coach">
+        <option value="calm_f">🌿 Calm F</option>
+        <option value="calm_m">🌿 Calm M</option>
         <option value="announcer">👑 Announcer</option>
         <option value="caster">🎧 Caster</option>
-        <option value="pro_f">🎙️ Ava (HD)</option>
-        <option value="pro_m">🎙️ Andrew (HD)</option>
       </select>
       <button class="lcu-pill icon-only voice-pill" id="btn-voice-toggle" title="Activar o silenciar Coach por Voz">
         <i class="fa-solid fa-volume-high"></i>
@@ -474,9 +474,16 @@
 
       <!-- Custom In-Game Voice Habit Reminders (always accessible before or during a match) -->
       <div class="ingame-card habit-reminders-card" id="habit-reminders-card" style="margin-top:1.25rem;">
-        <h3 class="section-title" style="margin-bottom:0.2rem;">
-          <i class="fa-solid fa-bell"></i> <span data-i18n="hab_title">Custom In-Game Voice Reminders</span>
-        </h3>
+        <div class="ig-scout-header" style="margin-bottom:0.4rem;">
+          <h3 class="section-title" style="margin:0;">
+            <i class="fa-solid fa-bell"></i> <span data-i18n="hab_title">Custom In-Game Voice Reminders</span>
+          </h3>
+          <label class="habit-toggle" style="font-size:0.78rem;gap:0.45rem;">
+            <i class="fa-solid fa-volume-low" style="color:#c89b3c;"></i>
+            <input type="range" id="voice-volume-slider" min="15" max="100" value="55" style="width:90px;accent-color:#c89b3c;cursor:pointer;">
+            <span id="voice-volume-label" style="min-width:32px;color:#cbd5e1;">55%</span>
+          </label>
+        </div>
         <p class="coach-muted" style="margin:0 0 1rem;" data-i18n="hab_sub">Choose how often NoFlash reminds you to glance at the minimap, ward, or reset (only speaks during live matches).</p>
         <div class="habit-list" id="habit-list">
           <div class="habit-row" data-habit="minimap">
@@ -692,8 +699,8 @@
 
   <!-- App JS -->
   <script src="/static/js/i18n.js?v=31"></script>
-  <script src="/static/js/voice.js?v=31"></script>
+  <script src="/static/js/voice.js?v=32"></script>
   <script src="/static/js/riftdle.js?v=31"></script>
-  <script src="/static/js/app.js?v=31"></script>
+  <script src="/static/js/app.js?v=32"></script>
 </body>
 </html>

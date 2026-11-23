@@ -4,33 +4,41 @@
    ═══════════════════════════════════════════════════════ */
 
 const VOICE_PREVIEWS = {
+  calm_f: {
+    en: 'No Flash is ready. Soft voice, short callouts, zero distractions.',
+    es: 'No Flash listo. Voz calma y avisos cortos para mantener el foco.',
+  },
+  calm_m: {
+    en: 'No Flash is ready. Calm callouts so you stay focused in-game.',
+    es: 'No Flash listo. Avisos tranquilos para que no pierdas la concentración.',
+  },
   announcer: {
-    en: 'Welcome to Summoner’s Rift. No Flash is online. Prepare your draft and claim victory.',
-    es: 'Bienvenido a la Grieta del Invocador. No Flash está activo. Prepará tu draft.',
+    en: 'Welcome to Summoner’s Rift. No Flash is online.',
+    es: 'Bienvenido a la Grieta. No Flash está activo.',
   },
   caster: {
-    en: 'Draft phase is live! Lock in your best carry, control river vision, and snowball the Rift.',
-    es: 'Arranca el draft en vivo. Elegí tu mejor pick, controlá la visión y cerrá la partida.',
-  },
-  pro_f: {
-    en: 'Hey, I am your No Flash Coach. Let us win this draft and track every objective.',
-    es: 'Hola, soy tu Coach de No Flash. Vamos a ganar este draft y controlar cada objetivo.',
-  },
-  pro_m: {
-    en: 'Ready to roll. I am your No Flash Coach, guiding your draft and live match.',
-    es: 'Todo listo. Soy tu Coach de No Flash, te acompaño en el draft y en partida.',
+    en: 'Draft is live. Stay sharp and control river vision.',
+    es: 'Draft en vivo. Mantené el foco y controlá el río.',
   },
 };
 
 class VoiceCoach {
   constructor() {
     this.enabled = localStorage.getItem('NoFlash_voice_enabled') !== 'false';
-    const saved = localStorage.getItem('NoFlash_voice_persona') || 'announcer';
-    this.persona = VOICE_PREVIEWS[saved] ? saved : 'announcer';
+    const saved = localStorage.getItem('NoFlash_voice_persona') || 'calm_f';
+    this.persona = VOICE_PREVIEWS[saved] ? saved : 'calm_f';
+    this.volume = parseFloat(localStorage.getItem('NoFlash_voice_vol') || '0.55');
+    if (Number.isNaN(this.volume) || this.volume < 0.1 || this.volume > 1.0) this.volume = 0.55;
     this.spokenIds = new Set();
     this.lastSpokenText = '';
     this.lastSpokenAt = 0;
     this.currentAudio = null;
+  }
+
+  setVolume(v) {
+    this.volume = Math.min(1.0, Math.max(0.1, Number(v) || 0.55));
+    localStorage.setItem('NoFlash_voice_vol', String(this.volume));
+    if (this.currentAudio) this.currentAudio.volume = this.volume;
   }
 
   getPersona() {
@@ -80,8 +88,8 @@ class VoiceCoach {
     if (dedupeId && this.spokenIds.has(dedupeId)) return;
 
     const now = Date.now();
-    // Anti-spam: mínimo 18s entre avisos automáticos para que no hable encima ni repita
-    if (!force && now - this.lastSpokenAt < 18000) {
+    // Anti-spam: mínimo 25s entre avisos automáticos para no desconcentrar en partida
+    if (!force && now - this.lastSpokenAt < 25000) {
       return;
     }
     if (!force && text === this.lastSpokenText && now - this.lastSpokenAt < 60000) {
@@ -94,12 +102,12 @@ class VoiceCoach {
 
     this.stop();
 
-    const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'es';
+    const lang = (typeof getCurrentLang === 'function') ? getCurrentLang() : 'en';
     const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(lang)}&persona=${encodeURIComponent(this.persona)}`;
 
     try {
       const audio = new Audio(url);
-      audio.volume = 0.92;
+      audio.volume = this.volume;
       this.currentAudio = audio;
       await audio.play();
     } catch (err) {
@@ -151,9 +159,22 @@ window.voiceCoach = new VoiceCoach();
 
 document.addEventListener('DOMContentLoaded', () => {
   const sel = document.getElementById('voice-persona-select');
-  if (!sel) return;
-  sel.value = window.voiceCoach.getPersona();
-  sel.addEventListener('change', () => {
-    window.voiceCoach.setPersona(sel.value, true);
-  });
+  if (sel) {
+    sel.value = window.voiceCoach.getPersona();
+    sel.addEventListener('change', () => {
+      window.voiceCoach.setPersona(sel.value, true);
+    });
+  }
+  const slider = document.getElementById('voice-volume-slider');
+  const lbl = document.getElementById('voice-volume-label');
+  if (slider) {
+    const pct = Math.round((window.voiceCoach.volume || 0.55) * 100);
+    slider.value = String(pct);
+    if (lbl) lbl.textContent = `${pct}%`;
+    slider.addEventListener('input', () => {
+      const val = parseInt(slider.value, 10) || 55;
+      window.voiceCoach.setVolume(val / 100);
+      if (lbl) lbl.textContent = `${val}%`;
+    });
+  }
 });

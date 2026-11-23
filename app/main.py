@@ -614,31 +614,31 @@ NEURAL_VOICES: dict[str, str] = {
     "tr": "tr-TR-EmelNeural",
 }
 
-# Perfiles de voz estilo League of Legends (Announcer UK, Esports Caster UK, Coaches HD — sin distorsión robótica)
+# Perfiles de voz agradables y calmas (diseñadas para no desconcentrar en partida)
 VOICE_PERSONAS: dict[str, dict[str, Any]] = {
+    "calm_f": {
+        "en": "en-US-AvaMultilingualNeural",
+        "es": "en-US-AvaMultilingualNeural",
+        "rate": "-4%",
+        "pitch": "-1Hz",
+    },
+    "calm_m": {
+        "en": "en-US-AndrewMultilingualNeural",
+        "es": "en-US-AndrewMultilingualNeural",
+        "rate": "-4%",
+        "pitch": "-1Hz",
+    },
     "announcer": {
         "en": "en-GB-SoniaNeural",
         "es": "es-ES-ElviraNeural",
-        "rate": "-3%",
+        "rate": "-5%",
         "pitch": "-2Hz",
     },
     "caster": {
         "en": "en-GB-RyanNeural",
         "es": "es-ES-AlvaroNeural",
-        "rate": "+2%",
+        "rate": "+0%",
         "pitch": "-1Hz",
-    },
-    "pro_f": {
-        "en": "en-US-AvaMultilingualNeural",
-        "es": "en-US-AvaMultilingualNeural",
-        "rate": "+0%",
-        "pitch": "+0Hz",
-    },
-    "pro_m": {
-        "en": "en-US-AndrewMultilingualNeural",
-        "es": "en-US-AndrewMultilingualNeural",
-        "rate": "+0%",
-        "pitch": "+0Hz",
     },
 }
 
@@ -689,15 +689,15 @@ _TTS_CACHE_MAX = 96
 
 
 @app.get("/api/tts")
-async def text_to_speech(text: str, lang: str = "en", persona: str = "pro_f") -> Response:
-    """Genera audio MP3 con voz neuronal ultra-humana (edge-tts) + selector de personaje."""
+async def text_to_speech(text: str, lang: str = "en", persona: str = "calm_f") -> Response:
+    """Genera audio MP3 con voz neuronal ultra-humana y calma (edge-tts)."""
     lang_key = (lang or "en").lower()
     clean_text = _polish_tts_text(text, lang_key)
     if not clean_text:
         raise HTTPException(status_code=400, detail="Texto vacío.")
-    persona_key = (persona or "pro_f").lower()
+    persona_key = (persona or "calm_f").lower()
     if persona_key not in VOICE_PERSONAS:
-        persona_key = "pro_f"
+        persona_key = "calm_f"
 
     cache_key = (lang_key, persona_key, clean_text)
     if cache_key in _TTS_CACHE:

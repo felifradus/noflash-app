@@ -1713,49 +1713,20 @@ class DraftAnalyzer {
     const STORAGE_KEY = 'NoFlash_habit_reminders_v1';
     const DIALOGUES = {
       minimap: {
-        en: [
-          'Quick minimap check — where is the enemy jungler?',
-          'Glance at your minimap before pushing up.',
-          'Check the minimap: are enemy laners missing?',
-          'Eyes on the minimap. Track jungle and mid.',
-        ],
-        es: [
-          'Chequeo rápido de minimapa: ¿dónde está el jungla enemigo?',
-          'Mirá el minimapa antes de empujar la oleada.',
-          'Ojo con el minimapa: ¿falta algún rival en línea?',
-        ],
+        en: ['Minimap check.', 'Quick map glance.', 'Check minimap.'],
+        es: ['Chequeo de mapa.', 'Mirá el minimapa.', 'Ojo al mapa.'],
       },
       wards: {
-        en: [
-          'Check your ward charges and drop river vision.',
-          'Place a ward before extending past river.',
-          'Remember to grab a Control Ward on your next reset.',
-        ],
-        es: [
-          'Revisá tus wards y poné visión en el río.',
-          'Poné un ward antes de extenderte en línea.',
-        ],
+        en: ['Check your wards.', 'Drop river vision.', 'Ward before pushing.'],
+        es: ['Revisá tus wards.', 'Visión en el río.'],
       },
       tempo: {
-        en: [
-          'Check your gold and wave state — look for a clean recall.',
-          'Crash your wave before recalling so you do not lose CS.',
-          'Check objective timers and spend your gold before fighting.',
-        ],
-        es: [
-          'Revisá tu oro y la oleada para buscar un buen back.',
-          'Empujá la oleada antes de backear para no perder farm.',
-        ],
+        en: ['Check your gold.', 'Look for a clean reset.', 'Crash wave before reset.'],
+        es: ['Revisá tu oro.', 'Buscá un buen back.'],
       },
       mental: {
-        en: [
-          'Deep breath. Reset your focus and play the next wave clean.',
-          'Stay calm, ignore chat, and play your win condition.',
-        ],
-        es: [
-          'Respirá hondo, reseteá el foco y jugá limpio la próxima oleada.',
-          'Calma, ignorá el chat y jugá a tu win condition.',
-        ],
+        en: ['Deep breath. Stay focused.', 'Calm reset. Next wave clean.'],
+        es: ['Respirá hondo. Mantené el foco.', 'Calma y a jugar limpio.'],
       },
     };
 
