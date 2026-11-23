@@ -271,7 +271,7 @@ class DesktopAPI:
         except Exception:
             screen_w = 1920
 
-        hud_w, hud_h = 174, 218
+        hud_w, hud_h = 204, 218
         pos_x = max(20, screen_w - hud_w - 14)
         pos_y = 150
 
@@ -310,7 +310,7 @@ class DesktopAPI:
             hwnd = user32.FindWindowW(None, OVERLAY_TITLE)
             if hwnd:
                 user32.SetWindowPos(
-                    hwnd, HWND_TOPMOST, 0, 0, 174, h, SWP_NOMOVE | SWP_NOACTIVATE
+                    hwnd, HWND_TOPMOST, 0, 0, 204, h, SWP_NOMOVE | SWP_NOACTIVATE
                 )
         threading.Thread(target=_do, daemon=True).start()
 

@@ -225,6 +225,29 @@
       box-shadow: 0 0 10px rgba(56, 229, 157, 0.7);
     }
 
+    .spell-btn.ult-btn {
+      border-color: rgba(168, 85, 247, 0.55);
+      background: linear-gradient(145deg, rgba(88, 28, 135, 0.55), rgba(15, 23, 42, 0.92));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .spell-btn.ult-btn .ult-letter {
+      font-size: 11px;
+      font-weight: 900;
+      color: #e9d5ff;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s ease;
+    }
+    .spell-btn.ult-btn.on-cd {
+      border-color: #c084fc;
+      background: rgba(30, 14, 52, 0.92);
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.5);
+    }
+    .spell-btn.ult-btn.on-cd .ult-letter {
+      opacity: 0.12;
+    }
+
     .cd-label {
       position: absolute;
       inset: 0;
@@ -425,11 +448,11 @@
     let alphaIdx = 0;
 
     const DEMO_ENEMIES = [
-      { champion: 'Darius', position: 'TOP', spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ghost', dd_key: 'SummonerHaste', cooldown: 210 }] },
-      { champion: 'LeeSin', position: 'JUNGLE', spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Smite', dd_key: 'SummonerSmite', cooldown: 90 }] },
-      { champion: 'Ahri', position: 'MIDDLE', spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ignite', dd_key: 'SummonerDot', cooldown: 180 }] },
-      { champion: 'Jinx', position: 'BOTTOM', spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Barrier', dd_key: 'SummonerBarrier', cooldown: 180 }] },
-      { champion: 'Thresh', position: 'UTILITY', spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ignite', dd_key: 'SummonerDot', cooldown: 180 }] },
+      { champion: 'Darius', position: 'TOP', ult_cooldown: 100, spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ghost', dd_key: 'SummonerHaste', cooldown: 210 }] },
+      { champion: 'LeeSin', position: 'JUNGLE', ult_cooldown: 85, spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Smite', dd_key: 'SummonerSmite', cooldown: 90 }] },
+      { champion: 'Ahri', position: 'MIDDLE', ult_cooldown: 115, spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ignite', dd_key: 'SummonerDot', cooldown: 180 }] },
+      { champion: 'Jinx', position: 'BOTTOM', ult_cooldown: 65, spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Barrier', dd_key: 'SummonerBarrier', cooldown: 180 }] },
+      { champion: 'Thresh', position: 'UTILITY', ult_cooldown: 120, spells: [{ name: 'Flash', dd_key: 'SummonerFlash', cooldown: 300 }, { name: 'Ignite', dd_key: 'SummonerDot', cooldown: 180 }] },
     ];
 
     let lastSig = '';
@@ -481,13 +504,22 @@
           `;
         }).join('');
 
+        const ultKey = `${idx}_R`;
+        const ultCd = en.ult_cooldown || 100;
+        const ultHtml = `
+          <button class="spell-btn ult-btn" data-key="${ultKey}" data-idx="${idx}" data-sidx="R" data-cd="${ultCd}" data-role="${role}" data-code="R" data-champ="${en.champion}" title="${en.champion} — Ulti R (~${ultCd}s)\nLeft-click or say '${role} no R'\nRight-click: Reset">
+            <span class="ult-letter">R</span>
+            <span class="cd-label" id="cd-${ultKey}"></span>
+          </button>
+        `;
+
         return `
           <div class="hud-row">
             <div class="champ-wrap">
               <img class="champ-avatar" src="${champImg(en.champion)}" alt="${en.champion}" onerror="this.style.opacity='0.3'">
               <span class="role-tag">${role}</span>
             </div>
-            <div class="spells-wrap">${spHtml}</div>
+            <div class="spells-wrap">${spHtml}${ultHtml}</div>
           </div>
         `;
       }).join('');
@@ -731,11 +763,18 @@
         if (!res.ok) return;
         const data = await res.json();
         if (data && data.matched) {
-          const key = `${data.enemy_idx}_${data.spell_idx}`;
-          if (triggerSpellByKey(key, true)) {
-            const code = spellShort(data.spell_dd_key, data.spell_name);
+          const list = Array.isArray(data.targets) && data.targets.length
+            ? data.targets
+            : [{ key: `${data.enemy_idx}_${data.spell_idx}`, spell_dd_key: data.spell_dd_key, spell_name: data.spell_name }];
+          const codes = [];
+          for (const t of list) {
+            if (triggerSpellByKey(t.key, codes.length === 0)) {
+              codes.push(t.spell_dd_key === 'ULTI' ? 'R' : spellShort(t.spell_dd_key, t.spell_name));
+            }
+          }
+          if (codes.length) {
             const r = roleShort(data.role, data.enemy_idx);
-            flashHudTitle(`✓ ${r} ${code}`, 2200);
+            flashHudTitle(`✓ ${r} ${codes.join('+')}`, 2300);
           }
         }
       } catch {} finally {
