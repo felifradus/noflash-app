@@ -1365,14 +1365,117 @@ class DraftAnalyzer {
     }
   }
 
+  /* ── Custom Saved Runes & Spells per Champion ── */
+  getCustomRunesMap() {
+    try {
+      return JSON.parse(localStorage.getItem('NoFlash_custom_runes_v1') || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  getCustomRunes(champName) {
+    const key = normalizeChampionId(champName);
+    return this.getCustomRunesMap()[key] || null;
+  }
+
+  saveCustomRunes(champName, cfg) {
+    const map = this.getCustomRunesMap();
+    map[normalizeChampionId(champName)] = cfg;
+    localStorage.setItem('NoFlash_custom_runes_v1', JSON.stringify(map));
+  }
+
+  async _importSetupToLoL(champion, keystone, spells, btnEl = null) {
+    if (btnEl) btnEl.disabled = true;
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+    try {
+      const res = await fetch('/api/lcu/import-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ champion, keystone, spells }),
+      });
+      const data = await res.json();
+      if (data.success) window.uiSfx?.playSuccess();
+      this.showToast(data.message || (isEn ? 'Runes & Spells imported!' : 'Importación completada.'), data.success ? 'success' : 'error');
+    } catch {
+      this.showToast(isEn ? 'Could not connect to League Client.' : 'Error al conectar con el cliente de LoL.', 'error');
+    } finally {
+      if (btnEl) btnEl.disabled = false;
+    }
+  }
+
+  openRuneEditor(champName, currentSetup) {
+    const modal = document.getElementById('rune-editor-modal');
+    if (!modal) return;
+    const norm = normalizeChampionId(champName);
+    const saved = this.getCustomRunes(norm);
+    const ks = (saved?.keystone || currentSetup?.keystone || 'Lethal Tempo');
+    const spArr = (saved?.spells || currentSetup?.spells || ['Flash', 'Barrier']).map(s => String(s).split('(')[0].trim());
+
+    document.getElementById('re-champ-icon').src = champImgUrl(norm);
+    document.getElementById('re-champ-title').textContent = `${displayName(norm)} — Custom Runes & Spells`;
+
+    const ksSel = document.getElementById('re-keystone');
+    const sp1Sel = document.getElementById('re-spell1');
+    const sp2Sel = document.getElementById('re-spell2');
+    if (ksSel) {
+      const opt = [...ksSel.options].find(o => o.value.toLowerCase() === ks.toLowerCase());
+      if (opt) ksSel.value = opt.value;
+    }
+    const matchSpell = (sel, raw) => {
+      if (!sel || !raw) return;
+      const low = raw.toLowerCase();
+      const mapEs = { destello: 'Flash', barrera: 'Barrier', limpiar: 'Cleanse', extenuar: 'Exhaust', prender: 'Ignite', teleportación: 'Teleport', fantasmal: 'Ghost', curar: 'Heal', aplastar: 'Smite' };
+      const target = mapEs[low] || raw;
+      const opt = [...sel.options].find(o => o.value.toLowerCase() === target.toLowerCase());
+      if (opt) sel.value = opt.value;
+    };
+    matchSpell(sp1Sel, spArr[0] || 'Flash');
+    matchSpell(sp2Sel, spArr[1] || 'Barrier');
+
+    this._editingRuneChamp = norm;
+    modal.style.display = 'flex';
+
+    if (!this._runeEditorBound) {
+      this._runeEditorBound = true;
+      const close = () => { modal.style.display = 'none'; };
+      document.getElementById('rune-editor-close')?.addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+      const readForm = () => ({
+        keystone: document.getElementById('re-keystone').value,
+        spells: [document.getElementById('re-spell1').value, document.getElementById('re-spell2').value],
+      });
+
+      document.getElementById('re-btn-save')?.addEventListener('click', () => {
+        const cfg = readForm();
+        this.saveCustomRunes(this._editingRuneChamp, cfg);
+        window.uiSfx?.playSuccess();
+        this.showToast(`Saved custom runes for ${displayName(this._editingRuneChamp)}!`, 'success');
+        close();
+        this.renderRecommendations();
+      });
+
+      document.getElementById('re-btn-save-import')?.addEventListener('click', async (e) => {
+        const cfg = readForm();
+        this.saveCustomRunes(this._editingRuneChamp, cfg);
+        close();
+        this.renderRecommendations();
+        await this._importSetupToLoL(this._editingRuneChamp, cfg.keystone, cfg.spells, e.currentTarget);
+      });
+    }
+  }
+
   /* ══════════════════════════════════════
-     Render: Recommendations
+     Render: Recommendations (#1 Spotlight + Full List)
      ══════════════════════════════════════ */
   renderRecommendations() {
     const recs = this.state.draftState.recommendations;
+    const spotlightEl = document.getElementById('top-pick-spotlight');
 
     if (!recs || recs.length === 0) {
-      const emptyMsg = typeof t === 'function' ? t('empty_recs') : 'Seleccioná tu rol y agregá picks para recibir recomendaciones.';
+      if (spotlightEl) spotlightEl.style.display = 'none';
+      const emptyMsg = typeof t === 'function' ? t('empty_recs') : 'Select your role and add picks to get recommendations.';
       this.recsListEl.innerHTML = `
         <div class="empty-recs">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -1380,6 +1483,58 @@ class DraftAnalyzer {
         </div>
       `;
       return;
+    }
+
+    const isEn = typeof getCurrentLang === 'function' ? getCurrentLang() !== 'es' : true;
+
+    // ── #1 RECOMMENDED PICK SPOTLIGHT (EN PRIMER PLANO ARRIBA DE TODO) ──
+    if (spotlightEl) {
+      const top = recs[0];
+      const topChamp = top.champion || top.champion_name || CHAMPION_NAMES[top.champion_id] || 'Unknown';
+      const topScore = top.draft_score != null ? (top.draft_score * 100).toFixed(0) : '—';
+      const topTier = top.tier || 'S+';
+      const savedTop = this.getCustomRunes(topChamp);
+      const topSetup = savedTop
+        ? { ...(top.setup || {}), keystone: savedTop.keystone, spells: savedTop.spells, isCustom: true }
+        : (top.setup || { keystone: 'Lethal Tempo', spells: ['Flash', 'Barrier'] });
+      const splash = champSplashUrl(topChamp);
+      const spIcons = (topSetup.spells || []).map(sp => `<img src="${spellImgUrl(sp)}" alt="${sp}" title="${sp}">`).join('');
+
+      spotlightEl.style.backgroundImage = `linear-gradient(90deg, rgba(6,16,32,0.95) 0%, rgba(9,22,42,0.86) 55%, rgba(6,16,32,0.92) 100%), url('${splash}')`;
+      spotlightEl.innerHTML = `
+        <div class="spotlight-left">
+          <img src="${champImgUrl(topChamp)}" alt="${displayName(topChamp)}" class="spotlight-avatar">
+          <div class="spotlight-info">
+            <div class="spotlight-kicker">👑 ${isEn ? '#1 BEST PICK FOR YOU NOW' : '👑 MEJOR PICK #1 PARA VOS AHORA'} ${topSetup.isCustom ? '<span class="saved-rune-pill">★ Custom Runes</span>' : ''}</div>
+            <div class="spotlight-name-row">
+              <span class="spotlight-champ">${displayName(topChamp)}</span>
+              <span class="tier-badge tier-sp">${topTier}</span>
+              <span class="spotlight-score">${topScore} PTS</span>
+            </div>
+            <div class="spotlight-setup-row">
+              <img src="${keystoneImgUrl(topSetup.keystone)}" alt="${topSetup.keystone}" class="spotlight-ks-icon">
+              <span>${topSetup.keystone || 'Optimal Runes'}</span>
+              <span class="spotlight-spells">${spIcons}</span>
+            </div>
+          </div>
+        </div>
+        <div class="spotlight-actions">
+          <button class="btn-import-hero" id="btn-spotlight-import">
+            <i class="fa-solid fa-bolt"></i> ${isEn ? 'IMPORT RUNES & SPELLS TO LOL' : 'IMPORTAR RUNAS Y HECHIZOS AL LOL'}
+          </button>
+          <button class="btn-edit-runes" id="btn-spotlight-edit">
+            <i class="fa-solid fa-sliders"></i> ${isEn ? 'Edit & Save Runes' : 'Editar y Guardar Runas'}
+          </button>
+        </div>
+      `;
+      spotlightEl.style.display = 'flex';
+
+      document.getElementById('btn-spotlight-import')?.addEventListener('click', (e) => {
+        this._importSetupToLoL(topChamp, topSetup.keystone, topSetup.spells || [], e.currentTarget);
+      });
+      document.getElementById('btn-spotlight-edit')?.addEventListener('click', () => {
+        this.openRuneEditor(topChamp, topSetup);
+      });
     }
 
     this.recsListEl.innerHTML = recs.map((rec, idx) => {
@@ -1454,39 +1609,39 @@ class DraftAnalyzer {
           </div>
           ${explanation ? `<div class="rec-explanation">${explanation}</div>` : ''}
           ${setupHtml}
-          ${setup ? `
-            <button class="btn-import-lol"
-                    data-champ="${champName}"
-                    data-keystone="${setup.keystone || ''}"
-                    data-spells="${(setup.spells || []).join('|')}">
-              <i class="fa-solid fa-bolt"></i> ${typeof getCurrentLang === 'function' && getCurrentLang() !== 'es' ? 'Import Runes & Spells to LoL' : 'Importar Runas y Hechizos al LoL'}
-            </button>
-          ` : ''}
+          ${(() => {
+            const custom = this.getCustomRunes(champName);
+            const effKs = custom?.keystone || setup?.keystone || 'Lethal Tempo';
+            const effSp = custom?.spells || setup?.spells || ['Flash', 'Barrier'];
+            return `
+              <div class="rec-action-row">
+                <button class="btn-import-lol"
+                        data-champ="${champName}"
+                        data-keystone="${effKs}"
+                        data-spells="${effSp.join('|')}">
+                  <i class="fa-solid fa-bolt"></i> ${isEn ? 'Import Runes & Spells to LoL' : 'Importar Runas y Hechizos al LoL'}${custom ? ' ★' : ''}
+                </button>
+                <button class="btn-edit-runes-sm" data-champ="${champName}" data-keystone="${effKs}" data-spells="${effSp.join('|')}" title="Edit & Save Custom Runes">
+                  <i class="fa-solid fa-sliders"></i>
+                </button>
+              </div>
+            `;
+          })()}
         </div>
       `;
     }).join('');
 
-    // Wire 1-click LCU Import buttons
+    // Wire 1-click LCU Import + Edit Runes buttons
     this.recsListEl.querySelectorAll('.btn-import-lol').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const champion = btn.dataset.champ;
-        const keystone = btn.dataset.keystone;
+      btn.addEventListener('click', () => {
         const spells = (btn.dataset.spells || '').split('|').filter(Boolean);
-        btn.disabled = true;
-        try {
-          const res = await fetch('/api/lcu/import-setup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ champion, keystone, spells }),
-          });
-          const data = await res.json();
-          if (data.success) window.uiSfx?.playSuccess();
-          this.showToast(data.message || 'Importación completada.', data.success ? 'success' : 'error');
-        } catch {
-          this.showToast('Error al conectar con el cliente de LoL.', 'error');
-        } finally {
-          btn.disabled = false;
-        }
+        this._importSetupToLoL(btn.dataset.champ, btn.dataset.keystone, spells, btn);
+      });
+    });
+    this.recsListEl.querySelectorAll('.btn-edit-runes-sm').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const spells = (btn.dataset.spells || '').split('|').filter(Boolean);
+        this.openRuneEditor(btn.dataset.champ, { keystone: btn.dataset.keystone, spells });
       });
     });
   }

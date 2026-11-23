@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=35">
+  <link rel="stylesheet" href="/static/css/style.css?v=36">
 </head>
 <body>
 
@@ -292,8 +292,11 @@
     <!-- ═══════════════ VISTA 3: DRAFT (COACH PRINCIPAL + TABLERO COMPACTO) ═══════════════ -->
     <section id="view-draft" class="view">
       <div class="draft-container coach-layout">
-        <!-- COLUMNA PRINCIPAL: COACH + RECOMENDACIONES -->
+        <!-- COLUMNA PRINCIPAL: #1 PICK SPOTLIGHT + COACH + RECOMENDACIONES -->
         <div class="draft-recommendations coach-main">
+          <!-- #1 RECOMMENDED PICK EN PRIMER PLANO + BOTÓN GIGANTE DE IMPORTAR RUNAS -->
+          <div class="top-pick-spotlight" id="top-pick-spotlight" style="display:none;"></div>
+
           <!-- Panel Estratégico de Coach -->
           <div class="coach-panel" id="coach-panel">
             <div class="coach-header">
@@ -776,6 +779,90 @@
     </div>
   </div>
 
+  <!-- ═══════════════ MODAL EDITOR DE RUNAS Y SPELLS POR CAMPEÓN ═══════════════ -->
+  <div class="champ-modal-backdrop" id="rune-editor-modal" style="display:none;">
+    <div class="champ-modal-box rune-editor-box">
+      <button class="champ-modal-close" id="rune-editor-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="re-header">
+        <img id="re-champ-icon" src="" alt="" class="re-champ-icon">
+        <div>
+          <h3 id="re-champ-title">Custom Runes &amp; Spells</h3>
+          <p class="re-subtitle">Saved permanently for this champion — used automatically on 1-click import.</p>
+        </div>
+      </div>
+      <div class="re-form">
+        <div class="re-field">
+          <label for="re-keystone"><i class="fa-solid fa-wand-magic-sparkles"></i> Keystone Rune</label>
+          <select id="re-keystone" class="re-select">
+            <optgroup label="Precision (Yellow)">
+              <option value="Lethal Tempo">Lethal Tempo</option>
+              <option value="Press the Attack">Press the Attack</option>
+              <option value="Fleet Footwork">Fleet Footwork</option>
+              <option value="Conqueror">Conqueror</option>
+            </optgroup>
+            <optgroup label="Domination (Red)">
+              <option value="Electrocute">Electrocute</option>
+              <option value="Dark Harvest">Dark Harvest</option>
+              <option value="Hail of Blades">Hail of Blades</option>
+            </optgroup>
+            <optgroup label="Sorcery (Blue)">
+              <option value="Arcane Comet">Arcane Comet</option>
+              <option value="Summon Aery">Summon Aery</option>
+              <option value="Phase Rush">Phase Rush</option>
+            </optgroup>
+            <optgroup label="Resolve (Green)">
+              <option value="Grasp of the Undying">Grasp of the Undying</option>
+              <option value="Aftershock">Aftershock</option>
+              <option value="Guardian">Guardian</option>
+            </optgroup>
+            <optgroup label="Inspiration (Teal)">
+              <option value="First Strike">First Strike</option>
+              <option value="Glacial Augment">Glacial Augment</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="re-spells-row">
+          <div class="re-field">
+            <label for="re-spell1"><i class="fa-solid fa-bolt"></i> Spell 1 (D)</label>
+            <select id="re-spell1" class="re-select">
+              <option value="Flash">Flash</option>
+              <option value="Ghost">Ghost</option>
+              <option value="Barrier">Barrier</option>
+              <option value="Heal">Heal</option>
+              <option value="Cleanse">Cleanse</option>
+              <option value="Exhaust">Exhaust</option>
+              <option value="Ignite">Ignite</option>
+              <option value="Teleport">Teleport</option>
+              <option value="Smite">Smite</option>
+            </select>
+          </div>
+          <div class="re-field">
+            <label for="re-spell2"><i class="fa-solid fa-fire"></i> Spell 2 (F)</label>
+            <select id="re-spell2" class="re-select">
+              <option value="Barrier">Barrier</option>
+              <option value="Flash">Flash</option>
+              <option value="Heal">Heal</option>
+              <option value="Cleanse">Cleanse</option>
+              <option value="Exhaust">Exhaust</option>
+              <option value="Ignite">Ignite</option>
+              <option value="Teleport">Teleport</option>
+              <option value="Ghost">Ghost</option>
+              <option value="Smite">Smite</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="re-actions">
+        <button type="button" id="re-btn-save" class="re-btn-secondary">
+          <i class="fa-solid fa-floppy-disk"></i> Save for Champion
+        </button>
+        <button type="button" id="re-btn-save-import" class="re-btn-primary">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Save &amp; Import to LoL
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════ FOOTER ═══════════════ -->
   <footer class="app-footer">
     <p><i class="fa-solid fa-bolt"></i> Powered by Riot Games API</p>
@@ -788,6 +875,6 @@
   <script src="/static/js/voice.js?v=34"></script>
   <script src="/static/js/riftdle.js?v=32"></script>
   <script src="/static/js/dodge_arena.js?v=4"></script>
-  <script src="/static/js/app.js?v=36"></script>
+  <script src="/static/js/app.js?v=37"></script>
 </body>
 </html>

@@ -4679,3 +4679,256 @@ button, select, input {
 
 .ig-build-chip strong { display: block; font-size: 0.84rem; color: #f0e6d2; }
 .ig-build-chip span { font-size: 0.73rem; color: #94a3b8; }
+
+/* ── #1 Pick Spotlight (Primer Plano en Draft) + Botón Gigante Importar Runas + Editor ── */
+.top-pick-spotlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 1.45rem;
+  margin-bottom: 1.15rem;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center 22%;
+  border: 2px solid #c89b3c;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(200, 155, 60, 0.25);
+}
+
+.spotlight-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 260px;
+}
+
+.spotlight-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid #f6d365;
+  box-shadow: 0 0 20px rgba(246, 211, 101, 0.45);
+}
+
+.spotlight-kicker {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #5eead4;
+  margin-bottom: 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.saved-rune-pill {
+  padding: 0.1rem 0.48rem;
+  border-radius: 999px;
+  background: rgba(246, 211, 101, 0.22);
+  border: 1px solid #f6d365;
+  color: #fef08a;
+  font-size: 0.66rem;
+}
+
+.spotlight-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.spotlight-champ {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.spotlight-score {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #f6d365;
+  padding: 0.18rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(200, 155, 60, 0.22);
+}
+
+.spotlight-setup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.spotlight-ks-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #c89b3c;
+}
+
+.spotlight-spells {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: 0.35rem;
+}
+
+.spotlight-spells img {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid rgba(200, 155, 60, 0.6);
+}
+
+.spotlight-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 235px;
+}
+
+.btn-import-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #0ac8b9 0%, #0a6e7c 50%, #c89b3c 120%);
+  border: 2px solid #f6d365;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(10, 200, 185, 0.45);
+}
+
+.btn-import-hero:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 32px rgba(246, 211, 101, 0.65);
+}
+
+.btn-edit-runes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 9px;
+  background: rgba(9, 20, 40, 0.85);
+  border: 1px solid rgba(200, 155, 60, 0.45);
+  color: #f0e6d2;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-edit-runes:hover {
+  border-color: #f6d365;
+  background: rgba(200, 155, 60, 0.22);
+}
+
+.rec-action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.rec-action-row .btn-import-lol {
+  flex: 1;
+  margin-top: 0 !important;
+  border: 1.5px solid #0ac8b9 !important;
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.22), rgba(200, 155, 60, 0.2)) !important;
+  font-weight: 800 !important;
+}
+
+.btn-edit-runes-sm {
+  width: 38px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(200, 155, 60, 0.4);
+  background: rgba(9, 20, 40, 0.88);
+  color: #f6d365;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit-runes-sm:hover {
+  border-color: #f6d365;
+  background: rgba(200, 155, 60, 0.25);
+}
+
+/* Modal Editor de Runas */
+.rune-editor-box {
+  max-width: 480px !important;
+  padding: 1.5rem !important;
+}
+
+.rune-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.2rem;
+}
+
+.re-champ-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid #f6d365;
+}
+
+.rune-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.re-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.re-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.re-field label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.re-field select {
+  background: #07101e;
+  color: #f0e6d2;
+  border: 1px solid rgba(200, 155, 60, 0.4);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.re-actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.re-actions button {
+  flex: 1;
+}
