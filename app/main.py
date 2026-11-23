@@ -715,15 +715,15 @@ _TTS_CACHE_MAX = 96
 
 
 @app.get("/api/tts")
-async def text_to_speech(text: str, lang: str = "en", persona: str = "calm_f") -> Response:
+async def text_to_speech(text: str, lang: str = "en", persona: str = "calm_m") -> Response:
     """Genera audio MP3 con voz neuronal ultra-humana y calma (edge-tts)."""
     lang_key = (lang or "en").lower()
     clean_text = _polish_tts_text(text, lang_key)
     if not clean_text:
         raise HTTPException(status_code=400, detail="Texto vacío.")
-    persona_key = (persona or "calm_f").lower()
+    persona_key = (persona or "calm_m").lower()
     if persona_key not in VOICE_PERSONAS:
-        persona_key = "calm_f"
+        persona_key = "calm_m"
 
     cache_key = (lang_key, persona_key, clean_text)
     if cache_key in _TTS_CACHE:

@@ -25,8 +25,8 @@ const VOICE_PREVIEWS = {
 class VoiceCoach {
   constructor() {
     this.enabled = localStorage.getItem('NoFlash_voice_enabled') !== 'false';
-    const saved = localStorage.getItem('NoFlash_voice_persona') || 'calm_f';
-    this.persona = VOICE_PREVIEWS[saved] ? saved : 'calm_f';
+    const saved = localStorage.getItem('NoFlash_voice_persona') || 'calm_m';
+    this.persona = VOICE_PREVIEWS[saved] ? saved : 'calm_m';
     this.volume = parseFloat(localStorage.getItem('NoFlash_voice_vol') || '0.55');
     if (Number.isNaN(this.volume) || this.volume < 0.1 || this.volume > 1.0) this.volume = 0.55;
     this.spokenIds = new Set();
