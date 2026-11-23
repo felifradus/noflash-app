@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════
-   NoFlash — Hextech UI Sound Design (WebAudio API)
-   Sonidos táctiles sutiles estilo Cliente Oficial de LoL (0ms latencia)
+   NoFlash — Subtle Modern UI Sound Design (Riot Client / macOS vibe)
+   Micro-taps suaves filtrados (cero beeps 8-bit / arcade)
    ═══════════════════════════════════════════════════════ */
 
 class HextechUISfx {
@@ -22,66 +22,61 @@ class HextechUISfx {
     return this.ctx;
   }
 
-  _tone(freqStart, freqEnd, dur, type = 'sine', vol = 0.06, delay = 0) {
+  // Micro-tap orgánico de baja frecuencia (suena como vidrio/metal suave, nunca beep)
+  _softTap(freq = 280, dur = 0.032, vol = 0.032) {
     const ctx = this._ctx();
     if (!ctx) return;
-    const t = ctx.currentTime + delay;
+    const t = ctx.currentTime;
     const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
     const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freqStart, t);
-    if (freqEnd && freqEnd !== freqStart) {
-      osc.frequency.exponentialRampToValueAtTime(freqEnd, t + dur);
-    }
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.55, t + dur);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(750, t);
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.004);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
     osc.start(t);
-    osc.stop(t + dur + 0.02);
+    osc.stop(t + dur + 0.01);
   }
 
-  // Cambio de pestaña suave y cristalino
-  playTab() {
-    this._tone(540, 720, 0.075, 'triangle', 0.045);
-  }
+  // Acorde atmosférico muy sutil (sin arpegio arcade)
+  _softChord(freqs, dur = 0.24, vol = 0.025) {
+    const ctx = this._ctx();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, t);
+    filter.connect(ctx.destination);
 
-  // Click táctil Hextech en botones
-  playClick() {
-    this._tone(420, 560, 0.055, 'sine', 0.04);
-  }
-
-  // Click de cronómetro al marcar hechizo enemigo en partida
-  playSpellTick() {
-    this._tone(880, 620, 0.08, 'triangle', 0.065);
-  }
-
-  // Enviar intento en Flashdle (flip suave)
-  playTileFlip() {
-    this._tone(360, 480, 0.06, 'triangle', 0.05, 0);
-    this._tone(480, 600, 0.06, 'triangle', 0.04, 0.055);
-  }
-
-  // Éxito / Runas importadas / Análisis listo / Copia
-  playSuccess() {
-    this._tone(523.25, 523.25, 0.12, 'triangle', 0.065, 0);
-    this._tone(659.25, 659.25, 0.14, 'triangle', 0.07, 0.07);
-    this._tone(783.99, 1046.5, 0.22, 'sine', 0.07, 0.14);
-  }
-
-  // Detección de Draft en vivo o Partida iniciada (acorde Hextech profundo)
-  playLockIn() {
-    this._tone(220, 330, 0.16, 'triangle', 0.07, 0);
-    this._tone(440, 659.25, 0.24, 'sine', 0.065, 0.09);
-  }
-
-  // Victoria en Flashdle
-  playVictory() {
-    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
-      this._tone(f, f * 1.01, 0.22, 'triangle', 0.075, i * 0.08);
+    freqs.forEach((f) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(vol, t + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain);
+      gain.connect(filter);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
     });
   }
+
+  playTab()       { this._softTap(320, 0.028, 0.026); }
+  playClick()     { this._softTap(240, 0.024, 0.024); }
+  playSpellTick() { this._softTap(460, 0.035, 0.038); }
+  playTileFlip()  { this._softTap(290, 0.030, 0.028); }
+  playSuccess()   { this._softChord([329.63, 493.88], 0.28, 0.028); }
+  playLockIn()    { this._softChord([196.00, 293.66], 0.32, 0.032); }
+  playVictory()   { this._softChord([261.63, 329.63, 392.00], 0.36, 0.030); }
 
   bindGlobalDelegation() {
     document.addEventListener('click', (e) => {
@@ -92,7 +87,7 @@ class HextechUISfx {
         this.playTab();
       } else if (target.closest('.ig-spell-btn')) {
         this.playSpellTick();
-      } else if (target.closest('.btn-analyze, .btn-import-lcu, .btn-copy-chat, .btn-switch-account, .btn-otra-cuenta, .idle-btn, .champ-card, .win-btn, .tb-util-btn, .btn-habit-test')) {
+      } else if (target.closest('.btn-analyze, .btn-import-lcu, .btn-copy-chat')) {
         this.playClick();
       }
     }, { passive: true });

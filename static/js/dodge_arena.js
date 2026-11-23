@@ -15,7 +15,7 @@ const DODGE_RANKS = [
   { min: 8000, name: 'CHALLENGER', color: '#fde047' },
 ];
 
-/* ── Sintetizador WebAudio sutil (cero archivos externos, súper inmersivo) ── */
+/* ── Sintetizador WebAudio sutil y orgánico (whoosh / thud suave, cero 8-bit) ── */
 class ArenaSFX {
   constructor() {
     this.ctx = null;
@@ -30,47 +30,32 @@ class ArenaSFX {
     if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
     return this.ctx;
   }
-  playFlash() {
+  _noiseBurst(dur, filterFreq, q, vol) {
     const ctx = this._ensure();
     if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass';
+    flt.frequency.setValueAtTime(filterFreq, ctx.currentTime);
+    flt.Q.setValueAtTime(q, ctx.currentTime);
     const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(520, now);
-    osc.frequency.exponentialRampToValueAtTime(1480, now + 0.14);
-    gain.gain.setValueAtTime(0.16, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.23);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    src.connect(flt); flt.connect(gain); gain.connect(ctx.destination);
+    src.start();
+  }
+  playFlash() {
+    this._noiseBurst(0.16, 1600, 1.4, 0.08);
   }
   playCloseDodge() {
-    const ctx = this._ensure();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(780, now);
-    osc.frequency.exponentialRampToValueAtTime(1180, now + 0.11);
-    gain.gain.setValueAtTime(0.09, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.16);
+    this._noiseBurst(0.06, 1100, 2.5, 0.045);
   }
   playLaser() {
-    const ctx = this._ensure();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(240, now);
-    osc.frequency.exponentialRampToValueAtTime(85, now + 0.28);
-    gain.gain.setValueAtTime(0.11, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.31);
+    this._noiseBurst(0.22, 420, 1.2, 0.08);
   }
   playHit() {
     const ctx = this._ensure();
@@ -78,28 +63,16 @@ class ArenaSFX {
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(42, now + 0.22);
-    gain.gain.setValueAtTime(0.14, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(115, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.16);
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.25);
+    osc.start(now); osc.stop(now + 0.19);
   }
   playRankUp() {
-    const ctx = this._ensure();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + i * 0.07);
-      gain.gain.setValueAtTime(0.10, now + i * 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.22);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + i * 0.07); osc.stop(now + i * 0.07 + 0.24);
-    });
+    window.uiSfx?.playSuccess();
   }
 }
 
