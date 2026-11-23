@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiftMind — Live LoL Coach</title>
+  <link rel="icon" type="image/jpeg" href="/static/logo.jpg">
+
+  <!-- Google Fonts: Cinzel (estilo Runeterra / LoL) + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="/static/css/style.css?v=24">
+</head>
+<body>
+
+  <!-- ═══════════════ HEADER / NAV ═══════════════ -->
+  <header class="app-header clean-header">
+    <!-- ZONA IZQUIERDA: Logo + Pestañas principales -->
+    <div class="header-left">
+      <div class="header-brand">
+        <img src="/static/logo.jpg" alt="RiftMind" class="brand-logo-img">
+        <div class="brand-text-wrap">
+          <h1 class="header-title">RiftMind</h1>
+          <span class="brand-tagline">LIVE LOL COACH</span>
+        </div>
+      </div>
+
+      <div class="header-divider"></div>
+
+      <nav class="header-nav main-tabs">
+        <button class="nav-tab active" data-view="search">
+          <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="nav_search">Búsqueda</span>
+        </button>
+        <button class="nav-tab" data-view="analysis" id="nav-analysis" disabled>
+          <i class="fa-solid fa-chart-line"></i> <span data-i18n="nav_analysis">Análisis</span>
+        </button>
+        <button class="nav-tab" data-view="draft" id="nav-draft" disabled>
+          <i class="fa-solid fa-chess"></i> <span data-i18n="nav_draft">Draft</span>
+        </button>
+        <button class="nav-tab" data-view="ingame" id="nav-ingame">
+          <i class="fa-solid fa-fire-flame-curved"></i> <span data-i18n="nav_ingame">En Partida</span>
+        </button>
+        <button class="nav-tab" data-view="riftdle" id="nav-riftdle">
+          <i class="fa-solid fa-gamepad"></i> <span>Warm-Up</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ZONA DERECHA: Controles y Estado -->
+    <div class="header-right">
+      <button class="btn-otra-cuenta" id="btn-header-switch" title="Analizar otra cuenta (ej: tu main mientras jugás en smurf)">
+        <i class="fa-solid fa-repeat"></i>
+        <span data-i18n="btn_other_account">Otra cuenta</span>
+      </button>
+      <button class="lcu-pill" id="lcu-status-pill" title="Estado de conexión con el cliente de League of Legends">
+        <span class="lcu-dot"></span>
+        <span id="lcu-status-text" data-i18n="lcu_not_found">LoL: Sin detectar</span>
+      </button>
+      <select class="lang-select" id="lang-select" title="Idioma / Language">
+        <option value="es">ES</option>
+        <option value="en">EN</option>
+        <option value="pt">PT</option>
+        <option value="ko">KO</option>
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+        <option value="zh">ZH</option>
+        <option value="ja">JA</option>
+        <option value="tr">TR</option>
+      </select>
+      <button class="lcu-pill icon-only voice-pill" id="btn-voice-toggle" title="Activar o silenciar Coach por Voz">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button class="lcu-pill icon-only" id="btn-reload-app" onclick="window.location.reload()" title="Recargar interfaz">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+      <button class="lcu-pill icon-only" id="btn-pin-window" style="display:none;" title="Mantener ventana siempre encima del cliente de LoL">
+        <i class="fa-solid fa-thumbtack"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ TOAST CONTAINER ═══════════════ -->
+  <div id="toast-container"></div>
+
+  <!-- ═══════════════ VISTA 1: BÚSQUEDA ═══════════════ -->
+  <main>
+    <section id="view-search" class="view active">
+      <div class="search-hero">
+        <div class="search-logo">
+          <img src="/static/logo.jpg" alt="RiftMind" class="search-logo-img">
+        </div>
+        <h2 class="search-heading" data-i18n="search_heading">Analizá tu rendimiento en la Grieta</h2>
+        <p class="search-subheading">Ingresá tu Riot ID para obtener un análisis completo de tus campeones y recomendaciones de draft personalizadas.</p>
+
+        <form id="search-form" class="search-form" autocomplete="off">
+          <div class="search-row">
+            <div class="input-group">
+              <label for="game-name">Riot ID (Nombre)</label>
+              <input type="text" id="game-name" placeholder="Ej: Faker" required>
+            </div>
+            <div class="input-group tag-group">
+              <label for="tag-line">Tag Line</label>
+              <input type="text" id="tag-line" placeholder="Ej: KR1" required>
+            </div>
+          </div>
+
+          <div class="search-row">
+            <div class="input-group">
+              <label for="region-select">Región</label>
+              <select id="region-select" required>
+                <option value="" disabled selected>Seleccionar región</option>
+                <option value="LAS">LAS (Latinoamérica Sur)</option>
+                <option value="LAN">LAN (Latinoamérica Norte)</option>
+                <option value="NA">NA (Norteamérica)</option>
+                <option value="EUW">EUW (Europa Oeste)</option>
+                <option value="EUNE">EUNE (Europa Nórdica & Este)</option>
+                <option value="BR">BR (Brasil)</option>
+                <option value="KR">KR (Corea)</option>
+                <option value="JP">JP (Japón)</option>
+                <option value="OCE">OCE (Oceanía)</option>
+                <option value="TR">TR (Turquía)</option>
+                <option value="RU">RU (Rusia)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="platform-select" data-i18n="label_platform">Plataforma</label>
+              <select id="platform-select" required>
+                <option value="" disabled selected>Seleccionar plataforma</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-analyze" id="btn-analyze">
+            <i class="fa-solid fa-bolt"></i> <span data-i18n="btn_analyze">Analizar Jugador</span>
+          </button>
+
+          <!-- Cuentas guardadas / Cambio rápido (Main / Smurf) -->
+          <div class="saved-accounts-wrap" id="saved-accounts-wrap" style="display:none;">
+            <span class="saved-accounts-label"><i class="fa-solid fa-users-gear"></i> <span data-i18n="saved_accounts">Cuentas recientes (Main / Smurf):</span></span>
+            <div class="saved-accounts-list" id="saved-accounts-list"></div>
+          </div>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+          <div class="spinner-wrapper">
+            <div class="spinner"></div>
+            <p class="loading-text">Analizando jugador<span class="dots"></span></p>
+            <p class="loading-sub">Esto puede tomar unos segundos</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VISTA 2: ANÁLISIS ═══════════════ -->
+    <section id="view-analysis" class="view">
+      <!-- Aviso de detección automática de Draft e In-Game -->
+      <div class="auto-draft-banner">
+        <i class="fa-solid fa-bolt"></i>
+        <span data-i18n="auto_banner">Modo Automático: dejá RiftMind abierto. Al entrar a Draft te recomienda bans, picks y runas en vivo; y al iniciar la partida sigue activo avisándote objetivos y spikes por voz.</span>
+      </div>
+
+      <!-- Resumen general con Splash Art del campeón principal -->
+      <div class="analysis-summary" id="player-summary">
+        <div class="summary-header">
+          <div class="summary-identity">
+            <img id="player-profile-icon" class="player-avatar" src="https://ddragon.leagueoflegends.com/cdn/14.23.1/img/profileicon/29.png" alt="Ícono de invocador">
+            <div class="summary-info">
+              <h2 class="player-name" id="player-name">—</h2>
+              <div class="player-meta">
+                <span class="player-level" id="player-level"><i class="fa-solid fa-star"></i> Nivel —</span>
+                <span class="player-rank" id="player-rank"><i class="fa-solid fa-trophy"></i> Sin clasificar</span>
+              </div>
+            </div>
+          </div>
+          <div class="summary-stats">
+            <div class="stat-card">
+              <span class="stat-value" id="global-winrate">—%</span>
+              <span class="stat-label" data-i18n="stat_winrate">Win Rate</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="total-games">—</span>
+              <span class="stat-label" data-i18n="stat_games">Partidas</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="play-style">—</span>
+              <span class="stat-label" data-i18n="stat_style">Rol Principal</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-value" id="pool-depth">—</span>
+              <span class="stat-label" data-i18n="stat_pool">Pool</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pulso de Sesión (Anti-Tilt) + Errores Recientes -->
+      <div class="mental-section" id="mental-section" style="display:none;">
+        <div class="mental-card" id="mental-card">
+          <div class="mental-header">
+            <h3 id="mental-title">🟢 Buen estado para jugar</h3>
+            <span class="mental-streak" id="mental-streak">—</span>
+          </div>
+          <p class="mental-message" id="mental-message"></p>
+        </div>
+        <div class="mistakes-card">
+          <div class="mistakes-title"><i class="fa-solid fa-magnifying-glass-chart"></i> <span data-i18n="mistakes_title">Puntos a mejorar de tus últimas partidas</span></div>
+          <div id="mistakes-list" class="mistakes-list"></div>
+        </div>
+      </div>
+
+      <!-- Análisis por Rol (primero arriba) -->
+      <div class="section-block">
+        <h3 class="section-title"><i class="fa-solid fa-layer-group"></i> <span data-i18n="sec_role_analysis">Análisis por Rol</span></h3>
+        <div class="role-tabs" id="role-tabs">
+          <button class="role-tab active" data-role="TOP"><i class="fa-solid fa-shield-halved"></i> TOP</button>
+          <button class="role-tab" data-role="JUNGLE"><i class="fa-solid fa-tree"></i> JG</button>
+          <button class="role-tab" data-role="MIDDLE"><i class="fa-solid fa-hat-wizard"></i> MID</button>
+          <button class="role-tab" data-role="BOTTOM"><i class="fa-solid fa-crosshairs"></i> ADC</button>
+          <button class="role-tab" data-role="UTILITY"><i class="fa-solid fa-hand-holding-heart"></i> SUP</button>
+        </div>
+        <div class="role-champion-grid" id="role-champion-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Champion Pool -->
+      <div class="section-block">
+        <h3 class="section-title"><i class="fa-solid fa-trophy"></i> <span data-i18n="sec_champ_pool">Champion Pool</span></h3>
+        <div class="champion-grid" id="champion-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Némesis, Víctima Favorita, Mejor Aliado y Fun Facts -->
+      <div class="section-block" id="fun-facts-section" style="display:none;">
+        <h3 class="section-title"><i class="fa-solid fa-sparkles"></i> <span data-i18n="sec_fun_facts">Némesis & Datos Curiosos</span></h3>
+        <div class="matchup-triad" id="matchup-triad"></div>
+        <div class="fun-records-grid" id="fun-records-grid"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VISTA 3: DRAFT (COACH PRINCIPAL + TABLERO COMPACTO) ═══════════════ -->
+    <section id="view-draft" class="view">
+      <div class="draft-container coach-layout">
+        <!-- COLUMNA PRINCIPAL: COACH + RECOMENDACIONES -->
+        <div class="draft-recommendations coach-main">
+          <!-- Panel Estratégico de Coach -->
+          <div class="coach-panel" id="coach-panel">
+            <div class="coach-header">
+              <h3 class="section-title"><i class="fa-solid fa-graduation-cap"></i> <span data-i18n="coach_title">Coach de Draft en Vivo</span></h3>
+              <div class="coach-header-actions">
+                <span class="coach-badge">Basado en tus últimas 160 partidas + Maestría</span>
+                <button class="btn-switch-account" id="btn-speak-coach" title="Escuchar el consejo del Coach por voz">
+                  <i class="fa-solid fa-microphone"></i> <span data-i18n="btn_listen">Escuchar</span>
+                </button>
+                <button class="btn-switch-account" id="btn-switch-account" title="Analizar con otra cuenta (ej: tu main mientras jugás en smurf)">
+                  <i class="fa-solid fa-user-pen"></i> <span id="active-profile-label" data-i18n="btn_other_account">Cambiar cuenta</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Medidor de Draft Diff + Semáforo de Dodge -->
+            <div class="draft-diff-box" id="draft-diff-box" style="display:none;">
+              <div class="draft-diff-top">
+                <span class="diff-ally-pct" id="diff-ally-pct">50% Aliados</span>
+                <span class="diff-verdict" id="diff-verdict">🟡 Draft Parejo</span>
+                <span class="diff-enemy-pct" id="diff-enemy-pct">50% Enemigos</span>
+              </div>
+              <div class="draft-diff-bar">
+                <div class="draft-diff-fill" id="draft-diff-fill" style="width:50%"></div>
+              </div>
+            </div>
+
+            <div class="coach-grid">
+              <!-- Qué Banear -->
+              <div class="coach-box">
+                <div class="coach-box-title"><i class="fa-solid fa-ban"></i> <span data-i18n="coach_bans">Qué Banear</span></div>
+                <div id="coach-bans" class="coach-bans-list">
+                  <span class="coach-muted">Seleccioná tu rol para ver bans recomendados.</span>
+                </div>
+              </div>
+
+              <!-- Orden de Pick / Swap -->
+              <div class="coach-box">
+                <div class="coach-box-title"><i class="fa-solid fa-right-left"></i> <span data-i18n="coach_pick_order">Cuándo Pickear / Swap</span></div>
+                <p id="coach-pick-order" class="coach-text">Esperando datos del draft...</p>
+              </div>
+            </div>
+
+            <!-- Alertas de Composición + Mensaje para el Equipo -->
+            <div class="coach-comp-row">
+              <div id="coach-alerts" class="coach-alerts"></div>
+              <div class="coach-chat-box" id="coach-chat-box">
+                <div class="coach-chat-label"><i class="fa-solid fa-comment-dots"></i> <span data-i18n="coach_chat_label">Qué decirle a tu equipo:</span></div>
+                <div class="coach-chat-content">
+                  <span id="coach-chat-text">Esperando composición...</span>
+                  <button class="btn-copy-chat" id="btn-copy-chat" title="Copiar mensaje para pegar en el chat de LoL">
+                    <i class="fa-regular fa-copy"></i> <span data-i18n="btn_copy">Copiar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plan de Partida (Gameplan cuando el draft avanza/termina) -->
+            <div class="gameplan-box" id="coach-gameplan">
+              <div class="gameplan-header">
+                <span class="gameplan-title"><i class="fa-solid fa-map"></i> <span data-i18n="gameplan_title">Plan de Partida (Qué hacer en juego)</span></span>
+                <span class="gameplan-status" id="gameplan-status">Esperando picks...</span>
+              </div>
+              <div id="gameplan-content" class="gameplan-grid">
+                <p class="coach-muted">Cuando avancen los picks del draft, acá vas a ver tu Win Condition, Early Game, Teamfights e Itemización.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 5 Picks Recomendados -->
+          <div class="recs-section">
+            <h3 class="section-title"><i class="fa-solid fa-crown"></i> <span data-i18n="recs_title">Mejores Picks para Vos Ahora</span></h3>
+            <div id="recommendations-list" class="recommendations-list coach-recs-list">
+              <div class="empty-recs">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <p>Seleccioná tu rol y agregá picks (o entrá a Champ Select) para recibir recomendaciones.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA COMPACTA: TABLERO DE DRAFT -->
+        <div class="draft-board draft-sidebar">
+          <h3 class="section-title"><i class="fa-solid fa-chess-board"></i> <span data-i18n="draft_current">Draft Actual</span></h3>
+
+          <!-- Role Selector -->
+          <div class="role-selector compact-roles">
+            <label data-i18n="your_role">Tu Rol:</label>
+            <div class="role-buttons" id="draft-role-buttons">
+              <button class="role-btn" data-role="TOP"><i class="fa-solid fa-shield-halved"></i> TOP</button>
+              <button class="role-btn" data-role="JUNGLE"><i class="fa-solid fa-tree"></i> JG</button>
+              <button class="role-btn active" data-role="MIDDLE"><i class="fa-solid fa-hat-wizard"></i> MID</button>
+              <button class="role-btn" data-role="BOTTOM"><i class="fa-solid fa-crosshairs"></i> ADC</button>
+              <button class="role-btn" data-role="UTILITY"><i class="fa-solid fa-hand-holding-heart"></i> SUP</button>
+            </div>
+          </div>
+
+          <div class="draft-teams compact-teams">
+            <!-- Equipo Aliado -->
+            <div class="draft-team ally-team">
+              <h4 class="team-label ally-label"><i class="fa-solid fa-users"></i> <span data-i18n="allies">Aliados</span></h4>
+              <div class="pick-slots" id="ally-picks">
+                <div class="pick-slot" data-side="ally" data-index="0"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="ally" data-index="1"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="ally" data-index="2"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="ally" data-index="3"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="ally" data-index="4"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+              </div>
+            </div>
+
+            <!-- Equipo Enemigo -->
+            <div class="draft-team enemy-team">
+              <h4 class="team-label enemy-label"><i class="fa-solid fa-skull-crossbones"></i> <span data-i18n="enemies">Enemigos</span></h4>
+              <div class="pick-slots" id="enemy-picks">
+                <div class="pick-slot" data-side="enemy" data-index="0"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="enemy" data-index="1"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="enemy" data-index="2"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="enemy" data-index="3"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+                <div class="pick-slot" data-side="enemy" data-index="4"><div class="pick-slot-inner"><i class="fa-solid fa-plus"></i></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Champion Search -->
+          <div class="champion-search-wrapper" id="champion-search-wrapper" style="display:none;">
+            <div class="champion-search-box">
+              <h4 id="search-slot-label">Seleccionar campeón</h4>
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" id="champion-search-input" placeholder="Buscar campeón...">
+              </div>
+              <div class="champion-search-results" id="champion-search-results">
+                <!-- Rendered by JS -->
+              </div>
+              <button class="btn-close-search" id="btn-close-search"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VISTA 4: EN PARTIDA (LIVE CLIENT DATA + SPELL TIMERS) ═══════════════ -->
+    <section id="view-ingame" class="view">
+      <div id="ingame-waiting" class="ingame-waiting-card">
+        <i class="fa-solid fa-satellite-dish ingame-pulse-icon"></i>
+        <h3 data-i18n="ig_waiting_title">Esperando partida en curso...</h3>
+        <p data-i18n="ig_waiting_sub">Apenas cargue tu partida de League of Legends, RiftMind se conecta a la API oficial de Riot para avisarte por voz de Dragón, Grubs, Barón, nivel 6 enemigo e itemización.</p>
+        <button class="btn-analyze" id="btn-test-voice-demo" style="max-width:280px;margin:1rem auto 0;">
+          <i class="fa-solid fa-volume-high"></i> <span data-i18n="ig_test_voice">Probar Coach por Voz ahora</span>
+        </button>
+      </div>
+
+      <div id="ingame-active" class="ingame-active-wrap" style="display:none;">
+        <!-- Cabecera en vivo -->
+        <div class="ingame-header-bar">
+          <div class="ingame-stat-chip">
+            <span class="ig-label">Tiempo</span>
+            <span class="ig-val" id="ig-time">00:00</span>
+          </div>
+          <div class="ingame-stat-chip">
+            <span class="ig-label">Tu Campeón</span>
+            <span class="ig-val" id="ig-champ">—</span>
+          </div>
+          <div class="ingame-stat-chip">
+            <span class="ig-label">CS / min</span>
+            <span class="ig-val" id="ig-cs">0.0</span>
+          </div>
+          <div class="ingame-stat-chip">
+            <span class="ig-label">KDA</span>
+            <span class="ig-val" id="ig-kda">0/0/0</span>
+          </div>
+          <div class="ingame-stat-chip">
+            <span class="ig-label">Oro en mano</span>
+            <span class="ig-val" id="ig-gold">0g</span>
+          </div>
+        </div>
+
+        <div class="ingame-grid">
+          <!-- Avisos tácticos del Coach In-Game -->
+          <div class="ingame-card">
+            <h3 class="section-title"><i class="fa-solid fa-headset"></i> Coach en Vivo (Avisos por Voz)</h3>
+            <div id="ig-alerts-list" class="ig-alerts-list">
+              <p class="coach-muted">Monitoreando objetivos, niveles e ítems enemigos...</p>
+            </div>
+          </div>
+
+          <!-- Tracker de Hechizos Enemigos (100% legal: click para iniciar cuenta regresiva) -->
+          <div class="ingame-card">
+            <h3 class="section-title"><i class="fa-solid fa-stopwatch"></i> Hechizos Enemigos (Click al gastar)</h3>
+            <p class="coach-muted" style="margin-bottom:0.75rem;">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
+            <div id="ig-enemies-list" class="ig-enemies-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ VISTA 5: WARM-UP & MINI-JUEGOS (COLA) ═══════════════ -->
+    <section id="view-riftdle" class="view">
+      <div class="riftdle-container">
+        <!-- Selector de 3 modos -->
+        <div class="warmup-tabs" id="warmup-tabs">
+          <button class="warmup-tab active" data-mode="riftdle"><i class="fa-solid fa-dice"></i> Riftdle</button>
+          <button class="warmup-tab" data-mode="micro"><i class="fa-solid fa-crosshairs"></i> Calentar Micro (20s)</button>
+          <button class="warmup-tab" data-mode="quiz"><i class="fa-solid fa-brain"></i> Quiz Macro & Builds</button>
+        </div>
+
+        <!-- MODO 1: RIFTDLE -->
+        <div class="warmup-pane active" id="pane-riftdle">
+          <div class="riftdle-header">
+            <div>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-dice"></i> Riftdle — Adiviná el Campeón</h2>
+              <p class="coach-muted" style="margin:0;">🟢 Exacto · 🟡 Parcial · 🔴 No coincide</p>
+            </div>
+            <div class="riftdle-actions">
+              <span class="riftdle-streak-pill" id="riftdle-streak">🔥 Racha: 0</span>
+              <button class="btn-switch-account" id="btn-riftdle-hint"><i class="fa-solid fa-lightbulb"></i> Pista</button>
+              <button class="btn-switch-account" id="btn-riftdle-new"><i class="fa-solid fa-shuffle"></i> Nuevo</button>
+            </div>
+          </div>
+
+          <div id="riftdle-hint-box" class="riftdle-hint-box" style="display:none;"></div>
+          <div id="riftdle-win-banner" class="riftdle-win-banner" style="display:none;"></div>
+
+          <div class="riftdle-search-wrap">
+            <input type="text" id="riftdle-input" placeholder="Escribí el nombre de un campeón (ej: Jinx, Zed, Thresh)..." autocomplete="off">
+            <div id="riftdle-dropdown" class="riftdle-dropdown" style="display:none;"></div>
+          </div>
+
+          <div class="riftdle-col-headers">
+            <span>Campeón</span>
+            <span>Rol</span>
+            <span>Daño</span>
+            <span>Clase</span>
+          </div>
+          <div id="riftdle-board" class="riftdle-board"></div>
+        </div>
+
+        <!-- MODO 2: CALENTAMIENTO MICRO (REFLEJOS & PUNTERÍA) -->
+        <div class="warmup-pane" id="pane-micro">
+          <div class="riftdle-header">
+            <div>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-crosshairs"></i> Calentamiento de Micro (20s)</h2>
+              <p class="coach-muted" style="margin:0;">Click rápido en los objetivos <strong style="color:#f6d365;">dorados</strong> · Evitá los <strong style="color:#f87171;">rojos</strong> (skillshots).</p>
+            </div>
+            <div class="riftdle-actions">
+              <span class="riftdle-streak-pill" id="micro-best">🏆 Récord: 0</span>
+              <button class="btn-switch-account" id="btn-micro-start"><i class="fa-solid fa-play"></i> Empezar</button>
+            </div>
+          </div>
+          <div class="micro-stats-bar">
+            <span>⏱️ <strong id="micro-time">20.0s</strong></span>
+            <span>🎯 Aciertos: <strong id="micro-score">0</strong></span>
+            <span>⚡ Reacción: <strong id="micro-rt">— ms</strong></span>
+            <span>📊 Precisión: <strong id="micro-acc">100%</strong></span>
+          </div>
+          <div class="micro-arena" id="micro-arena">
+            <div class="micro-overlay-msg" id="micro-overlay">
+              <p>Calentá el mouse y los reflejos antes de tu partida.</p>
+              <button class="btn-analyze" id="btn-micro-start-big" style="max-width:220px;margin:0.5rem auto 0;">
+                <i class="fa-solid fa-bolt"></i> Arrancar (20s)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODO 3: QUIZ DE MACRO & BUILDS -->
+        <div class="warmup-pane" id="pane-quiz">
+          <div class="riftdle-header">
+            <div>
+              <h2 class="section-title" style="margin-bottom:0.2rem;"><i class="fa-solid fa-brain"></i> Quiz de Macro & Itemización</h2>
+              <p class="coach-muted" style="margin:0;">Decisiones reales de SoloQ: qué buildear y cómo jugar el mapa.</p>
+            </div>
+            <div class="riftdle-actions">
+              <span class="riftdle-streak-pill" id="quiz-score-pill">✅ 0 / 0</span>
+              <button class="btn-switch-account" id="btn-quiz-next"><i class="fa-solid fa-forward"></i> Siguiente</button>
+            </div>
+          </div>
+          <div class="quiz-card" id="quiz-card">
+            <span class="quiz-category" id="quiz-category">BUILD</span>
+            <h3 class="quiz-question" id="quiz-question">Cargando escenario...</h3>
+            <div class="quiz-options" id="quiz-options"></div>
+            <div class="quiz-feedback" id="quiz-feedback" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POP-UP AMIGABLE DE COLA / INACTIVIDAD -->
+    <div class="idle-popup" id="idle-popup" style="display:none;">
+      <button class="idle-popup-close" id="idle-popup-close" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="idle-popup-title">⏳ ¿Esperando cola o al pedo?</div>
+      <p class="idle-popup-text">Calentá reflejos o tirate una ronda rápida mientras encontrás partida:</p>
+      <div class="idle-popup-btns">
+        <button class="idle-btn" data-go="micro">🎯 Micro (20s)</button>
+        <button class="idle-btn" data-go="quiz">🧠 Macro/Builds</button>
+        <button class="idle-btn" data-go="riftdle">🎲 Riftdle</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════ MODAL ANÁLISIS PROFUNDO DE CAMPEÓN ═══════════════ -->
+  <div class="champ-modal-backdrop" id="champ-modal" style="display:none;">
+    <div class="champ-modal-box">
+      <button class="champ-modal-close" id="champ-modal-close" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="champ-modal-hero" id="champ-modal-hero">
+        <img id="champ-modal-icon" src="" alt="">
+        <div>
+          <h3 id="champ-modal-name">—</h3>
+          <div id="champ-modal-sub" class="champ-modal-sub">—</div>
+        </div>
+      </div>
+      <div class="champ-modal-metrics" id="champ-modal-metrics"></div>
+      <div class="champ-modal-columns">
+        <div class="champ-modal-col good">
+          <h4><i class="fa-solid fa-circle-check"></i> <span data-i18n="modal_good">Lo que hacés bien</span></h4>
+          <ul id="champ-modal-strengths"></ul>
+        </div>
+        <div class="champ-modal-col bad">
+          <h4><i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="modal_bad">Cosas a mejorar</span></h4>
+          <ul id="champ-modal-improvements"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="app-footer">
+    <p><i class="fa-solid fa-bolt"></i> Powered by Riot Games API</p>
+    <p class="disclaimer" data-i18n="disclaimer">RiftMind no está respaldado por Riot Games y no refleja los puntos de vista u opiniones de Riot Games ni de nadie involucrado oficialmente en la producción o administración de League of Legends. League of Legends y Riot Games son marcas registradas de Riot Games, Inc.</p>
+  </footer>
+
+  <!-- App JS -->
+  <script src="/static/js/i18n.js?v=24"></script>
+  <script src="/static/js/voice.js?v=24"></script>
+  <script src="/static/js/riftdle.js?v=24"></script>
+  <script src="/static/js/app.js?v=24"></script>
+</body>
+</html>
