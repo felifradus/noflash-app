@@ -347,6 +347,211 @@ async def get_live_game(lang: str = "es") -> dict[str, Any]:
     return await live_game_monitor.get_live_state(lang=lang)
 
 
+class LiveScoutPlayer(BaseModel):
+    game_name: str = ""
+    tag_line: str = ""
+    champion: str = ""
+    team_side: str = "enemy"  # "ally" | "enemy"
+    position: str = ""
+    is_me: bool = False
+
+
+class LiveScoutRequest(BaseModel):
+    platform: str = "la2"
+    lang: str = "es"
+    players: list[LiveScoutPlayer] = Field(default_factory=list)
+
+
+_SCOUT_CACHE: dict[str, dict[str, Any]] = {}
+_TIER_SCORE = {
+    "IRON": 1, "BRONZE": 2, "SILVER": 3, "GOLD": 4,
+    "PLATINUM": 5, "EMERALD": 6, "DIAMOND": 7,
+    "MASTER": 8, "GRANDMASTER": 9, "CHALLENGER": 10,
+}
+
+
+@app.post("/api/live-scout")
+async def live_scout_match(request: LiveScoutRequest) -> dict[str, Any]:
+    """
+    Scouting en vivo de los 10 jugadores (aliados y rivales) una vez iniciada la partida.
+    Usa solo APIs oficiales de Riot (Account v1, League v4 by-puuid, Mastery v4).
+    """
+    if not request.players:
+        return {"success": False, "allies": [], "enemies": [], "summary": {}}
+
+    platform = (request.platform or "la2").lower()
+    if platform not in PLATFORM_TO_ROUTING:
+        platform = "la2"
+    routing = PLATFORM_TO_ROUTING[platform]
+    is_en = (request.lang or "es").lower() != "es"
+
+    sig = f"{platform}:{request.lang}:" + "|".join(
+        sorted(f"{p.team_side}:{p.game_name}#{p.tag_line}:{p.champion}" for p in request.players)
+    )
+    if sig in _SCOUT_CACHE:
+        return _SCOUT_CACHE[sig]
+
+    api_key = _get_api_key()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="RIOT_API_KEY no configurada.")
+
+    # Mapa normalizado nombre campeón -> championId para buscar maestría exacta
+    from app.data.counter_data import CHAMPION_ID_TO_NAME
+    norm_name_to_id: dict[str, int] = {}
+    for cid, cname in CHAMPION_ID_TO_NAME.items():
+        clean = "".join(ch for ch in cname.lower() if ch.isalnum())
+        norm_name_to_id[clean] = cid
+
+    sem = asyncio.Semaphore(5)
+
+    async def _scout_one(client: RiotAPIClient, p: LiveScoutPlayer) -> dict[str, Any]:
+        base = {
+            "game_name": p.game_name,
+            "tag_line": p.tag_line,
+            "champion": p.champion,
+            "team_side": p.team_side,
+            "position": p.position,
+            "is_me": p.is_me,
+            "tier": "UNRANKED",
+            "rank": "",
+            "lp": 0,
+            "wins": 0,
+            "losses": 0,
+            "games": 0,
+            "win_rate": None,
+            "hot_streak": False,
+            "mastery_level": 0,
+            "mastery_points": 0,
+            "tags": [],
+            "threat_score": 0.0,
+        }
+        if not p.game_name or not p.tag_line:
+            return base
+
+        async with sem:
+            try:
+                acc = await client.get_account_by_riot_id(p.game_name, p.tag_line, routing)
+                puuid = acc.get("puuid", "")
+                if not puuid:
+                    return base
+
+                ranked_task = client.get_ranked_stats_by_puuid(puuid, platform)
+                mastery_task = client.get_champion_masteries(puuid, platform)
+                ranked_res, mastery_res = await asyncio.gather(
+                    ranked_task, mastery_task, return_exceptions=True
+                )
+
+                # SoloQ stats
+                if isinstance(ranked_res, list):
+                    solo = next(
+                        (e for e in ranked_res if e.get("queueType") == "RANKED_SOLO_5x5"),
+                        ranked_res[0] if ranked_res else None,
+                    )
+                    if solo:
+                        wins = int(solo.get("wins", 0))
+                        losses = int(solo.get("losses", 0))
+                        games = wins + losses
+                        wr = round((wins / games) * 100, 1) if games > 0 else None
+                        base.update({
+                            "tier": solo.get("tier", "UNRANKED"),
+                            "rank": solo.get("rank", ""),
+                            "lp": int(solo.get("leaguePoints", 0)),
+                            "wins": wins,
+                            "losses": losses,
+                            "games": games,
+                            "win_rate": wr,
+                            "hot_streak": bool(solo.get("hotStreak", False)),
+                        })
+
+                # Maestría en el campeón actual
+                champ_norm = "".join(ch for ch in (p.champion or "").lower() if ch.isalnum())
+                champ_id = norm_name_to_id.get(champ_norm)
+                if isinstance(mastery_res, list) and champ_id is not None:
+                    m_entry = next(
+                        (m for m in mastery_res if m.get("championId") == champ_id),
+                        None,
+                    )
+                    if m_entry:
+                        base["mastery_level"] = int(m_entry.get("championLevel", 0))
+                        base["mastery_points"] = int(m_entry.get("championPoints", 0))
+
+                # Generar tags tácticos inteligentes
+                tags: list[dict[str, str]] = []
+                pts = base["mastery_points"]
+                wr = base["win_rate"]
+                games = base["games"]
+                tier_val = _TIER_SCORE.get(base["tier"], 0)
+
+                if pts >= 150000 or base["mastery_level"] >= 10:
+                    tags.append({"cls": "gold", "text": "🔥 OTP / Main"})
+                elif pts < 5000 and base["mastery_level"] <= 3:
+                    tags.append({"cls": "warn", "text": "🆕 First Time" if is_en else "🆕 Poca práctica"})
+
+                if base["hot_streak"]:
+                    tags.append({"cls": "good", "text": "🔥 Hot Streak" if is_en else "🔥 En racha"})
+
+                if wr is not None and games >= 15:
+                    if wr >= 55.0:
+                        tags.append({"cls": "good", "text": f"📈 {wr}% WR"})
+                    elif wr <= 46.0:
+                        tags.append({"cls": "bad", "text": f"❄️ {'Tilt Target' if is_en else 'Campable'} ({wr}%)"})
+
+                base["tags"] = tags[:3]
+                # Score de peligro para identificar amenaza #1 y target #1
+                wr_factor = ((wr or 50.0) - 50.0) * 0.8
+                mastery_factor = min(20.0, pts / 15000.0)
+                base["threat_score"] = round(
+                    tier_val * 10.0 + wr_factor + mastery_factor + (6.0 if base["hot_streak"] else 0.0),
+                    1,
+                )
+            except Exception as exc:
+                logger.debug(f"Live scout skip {p.game_name}#{p.tag_line}: {exc}")
+        return base
+
+    async with RiotAPIClient(api_key) as client:
+        scouted = await asyncio.gather(*[_scout_one(client, p) for p in request.players])
+
+    allies = [p for p in scouted if p["team_side"] == "ally"]
+    enemies = [p for p in scouted if p["team_side"] == "enemy"]
+
+    def _avg_wr(group: list[dict[str, Any]]) -> float | None:
+        vals = [x["win_rate"] for x in group if x["win_rate"] is not None]
+        return round(sum(vals) / len(vals), 1) if vals else None
+
+    key_threat = max(enemies, key=lambda x: x["threat_score"]) if enemies else None
+    camp_target = min(enemies, key=lambda x: x["threat_score"]) if len(enemies) > 1 else None
+
+    voice_summary = ""
+    if key_threat and camp_target and key_threat["champion"] != camp_target["champion"]:
+        if is_en:
+            voice_summary = (
+                f"Match scout ready. Watch out for enemy {key_threat['champion']} "
+                f"and look to punish {camp_target['champion']}."
+            )
+        else:
+            voice_summary = (
+                f"Análisis de partida listo. Ojo con {key_threat['champion']} rival, "
+                f"y buscá castigar a {camp_target['champion']}."
+            )
+
+    result = {
+        "success": True,
+        "allies": allies,
+        "enemies": enemies,
+        "summary": {
+            "ally_avg_wr": _avg_wr(allies),
+            "enemy_avg_wr": _avg_wr(enemies),
+            "key_threat": key_threat,
+            "camp_target": camp_target,
+            "voice_summary": voice_summary,
+        },
+    }
+    if len(_SCOUT_CACHE) >= 12:
+        _SCOUT_CACHE.pop(next(iter(_SCOUT_CACHE)))
+    _SCOUT_CACHE[sig] = result
+    return result
+
+
 @app.post("/api/lcu/import-setup")
 async def import_lcu_setup(request: ImportSetupRequest) -> dict[str, Any]:
     """Importa en 1 click las runas y hechizos recomendados directo al cliente de LoL."""

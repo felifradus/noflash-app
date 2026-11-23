@@ -99,16 +99,40 @@ class LiveGameMonitor:
         minutes = max(game_time / 60.0, 1.0)
         cs_per_min = round(my_cs / minutes, 1)
 
+        allies: list[dict[str, Any]] = []
         enemies: list[dict[str, Any]] = []
         armor_items = 0
         mr_items = 0
         lv6_threats: list[str] = []
 
+        def _extract_riot_id(player: dict[str, Any]) -> tuple[str, str]:
+            g = (player.get("riotIdGameName") or "").strip()
+            t = (player.get("riotIdTagLine") or "").strip()
+            if not g:
+                raw_id = (player.get("riotId") or player.get("summonerName") or "").strip()
+                if "#" in raw_id:
+                    g, t = raw_id.split("#", 1)
+                else:
+                    g = raw_id
+            return g.strip(), t.strip()
+
         for p in all_players:
-            if p.get("team") == my_team:
-                continue
             champ = p.get("championName", "Unknown")
             level = int(p.get("level", 1))
+            g_name, t_line = _extract_riot_id(p)
+            is_me = (p is my_entry)
+
+            if p.get("team") == my_team:
+                allies.append({
+                    "champion": champ,
+                    "level": level,
+                    "position": p.get("position", ""),
+                    "game_name": g_name,
+                    "tag_line": t_line,
+                    "is_me": is_me,
+                })
+                continue
+
             items = [it.get("displayName", "") for it in p.get("items", [])]
             for it_name in items:
                 low_it = it_name.lower()
@@ -127,6 +151,8 @@ class LiveGameMonitor:
                 "champion": champ,
                 "level": level,
                 "position": p.get("position", ""),
+                "game_name": g_name,
+                "tag_line": t_line,
                 "is_dead": bool(p.get("isDead", False)),
                 "items_count": len(items),
                 "spells": [
@@ -245,6 +271,7 @@ class LiveGameMonitor:
                 "cs_per_min": cs_per_min,
                 "kda": f"{my_scores.get('kills', 0)}/{my_scores.get('deaths', 0)}/{my_scores.get('assists', 0)}",
             },
+            "allies": allies,
             "enemies": enemies,
             "alerts": alerts,
         }

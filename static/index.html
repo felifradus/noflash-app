@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="/static/css/style.css?v=26">
+  <link rel="stylesheet" href="/static/css/style.css?v=27">
 </head>
 <body>
 
@@ -445,6 +445,23 @@
             <h3 class="section-title"><i class="fa-solid fa-stopwatch"></i> <span data-i18n="ig_spells_title">Hechizos Enemigos (Click al gastar)</span></h3>
             <p class="coach-muted" style="margin-bottom:0.75rem;" data-i18n="ig_spells_hint">Hacé click en cualquier hechizo enemigo cuando lo gasten para iniciar su cooldown. La voz te avisa cuando vuelve.</p>
             <div id="ig-enemies-list" class="ig-enemies-list"></div>
+          </div>
+        </div>
+
+        <!-- Scouting en vivo de los 10 jugadores (Aliados vs Rivales) -->
+        <div class="ingame-card ig-scout-card" id="ig-scout-card" style="margin-top:1.25rem;">
+          <div class="ig-scout-header">
+            <div>
+              <h3 class="section-title" style="margin-bottom:0.15rem;"><i class="fa-solid fa-binoculars"></i> <span data-i18n="ig_scout_title">Análisis de Aliados y Rivales (En Vivo)</span></h3>
+              <p class="coach-muted" style="margin:0;" id="ig-scout-sub" data-i18n="ig_scout_sub">Rango SoloQ, Win Rate, Maestría en el campeón actual y amenazas/targets.</p>
+            </div>
+            <button class="btn-switch-account" id="btn-rescout-live">
+              <i class="fa-solid fa-rotate"></i> <span data-i18n="ig_rescout">Re-escanear</span>
+            </button>
+          </div>
+          <div id="ig-scout-summary" class="ig-scout-summary" style="display:none;"></div>
+          <div id="ig-scout-grid" class="ig-scout-grid">
+            <p class="coach-muted" style="grid-column:1/-1;text-align:center;padding:1rem;" data-i18n="ig_scout_loading">Analizando a los 10 jugadores de la partida...</p>
           </div>
         </div>
       </div>

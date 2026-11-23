@@ -1524,6 +1524,15 @@ class DraftAnalyzer {
     this.liveInGameWasActive = false;
     this.enemySpellTimers = {}; // key: "Champ_0" -> { endAt, champ, spellName }
     this.lastLiveEnemiesKey = '';
+    this.lastLiveScoutKey = '';
+    this.lastLiveState = null;
+
+    document.getElementById('btn-rescout-live')?.addEventListener('click', () => {
+      if (this.lastLiveState) {
+        this.lastLiveScoutKey = '';
+        this.runLiveMatchScout(this.lastLiveState, true);
+      }
+    });
 
     const pollLive = async () => {
       try {
@@ -1538,10 +1547,21 @@ class DraftAnalyzer {
             this.liveInGameWasActive = false;
             this.enemySpellTimers = {};
             this.lastLiveEnemiesKey = '';
+            this.lastLiveScoutKey = '';
+            this.lastLiveState = null;
           }
           if (this.igWaitingEl) this.igWaitingEl.style.display = 'block';
           if (this.igActiveEl) this.igActiveEl.style.display = 'none';
           return;
+        }
+
+        this.lastLiveState = state;
+        const scoutKey = JSON.stringify(
+          [...(state.allies || []), ...(state.enemies || [])].map(p => `${p.game_name}#${p.tag_line}:${p.champion}`)
+        );
+        if (scoutKey && scoutKey !== '[]' && scoutKey !== this.lastLiveScoutKey) {
+          this.lastLiveScoutKey = scoutKey;
+          this.runLiveMatchScout(state, false);
         }
 
         if (!this.liveInGameWasActive) {
@@ -1636,6 +1656,119 @@ class DraftAnalyzer {
     pollLive();
     setInterval(pollLive, 3000);
     setInterval(() => this._tickSpellTimers(), 1000);
+  }
+
+  /* ── Scouting en vivo de los 10 jugadores (Aliados + Rivales) ── */
+  async runLiveMatchScout(liveState, manualTrigger = false) {
+    const gridEl = document.getElementById('ig-scout-grid');
+    const summaryEl = document.getElementById('ig-scout-summary');
+    if (!gridEl) return;
+
+    const curLang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
+    const isEn = curLang !== 'es';
+    const platform = this.platformSelect?.value
+      || this.lcuLastSummoner?.platform
+      || 'la2';
+
+    const players = [
+      ...(liveState.allies || []).map(p => ({
+        game_name: p.game_name || '',
+        tag_line: p.tag_line || '',
+        champion: p.champion || '',
+        team_side: 'ally',
+        position: p.position || '',
+        is_me: !!p.is_me,
+      })),
+      ...(liveState.enemies || []).map(p => ({
+        game_name: p.game_name || '',
+        tag_line: p.tag_line || '',
+        champion: p.champion || '',
+        team_side: 'enemy',
+        position: p.position || '',
+        is_me: false,
+      })),
+    ];
+
+    if (players.length === 0) return;
+
+    gridEl.innerHTML = `<p class="coach-muted" style="grid-column:1/-1;text-align:center;padding:1rem;">${isEn ? 'Scouting all 10 players in this match...' : 'Analizando a los 10 jugadores de la partida...'}</p>`;
+    if (summaryEl) summaryEl.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/live-scout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, lang: curLang, players }),
+      });
+      if (!res.ok) throw new Error('Scout API error');
+      const data = await res.json();
+      if (!data.success) return;
+
+      const s = data.summary || {};
+      if (summaryEl && (s.key_threat || s.camp_target)) {
+        const threat = s.key_threat;
+        const target = s.camp_target;
+        const formatRank = (p) => p && p.tier && p.tier !== 'UNRANKED'
+          ? `${p.tier} ${p.rank} (${p.lp} LP)` : 'Unranked';
+        summaryEl.innerHTML = `
+          ${threat ? `<div class="scout-callout threat"><strong>⚠️ ${isEn ? 'Main Threat' : 'Amenaza Principal'}:</strong> ${displayName(threat.champion)} (${threat.game_name}) · ${formatRank(threat)}${threat.win_rate != null ? ` · ${threat.win_rate}% WR` : ''}</div>` : ''}
+          ${target && (!threat || target.champion !== threat.champion) ? `<div class="scout-callout target"><strong>🎯 ${isEn ? 'Best Target to Punish' : 'Mejor Target para Castigar'}:</strong> ${displayName(target.champion)} (${target.game_name}) · ${formatRank(target)}${target.win_rate != null ? ` · ${target.win_rate}% WR` : ''}</div>` : ''}
+        `;
+        summaryEl.style.display = 'grid';
+      }
+
+      if (s.voice_summary && window.voiceCoach && !manualTrigger) {
+        window.voiceCoach.speak(s.voice_summary, { dedupeId: `scout_${this.lastLiveScoutKey}` });
+      }
+
+      const renderPlayerRow = (p) => {
+        const rankTxt = p.tier && p.tier !== 'UNRANKED'
+          ? `${p.tier} ${p.rank} · ${p.lp} LP`
+          : 'Unranked';
+        const wrTxt = p.win_rate != null
+          ? `<span class="scout-wr ${p.win_rate >= 54 ? 'high' : p.win_rate <= 46 ? 'low' : ''}">${p.win_rate}% WR</span> <span class="scout-games">(${p.games}G)</span>`
+          : `<span class="scout-games">—</span>`;
+        const ptsTxt = p.mastery_points >= 1000
+          ? `M${p.mastery_level} · ${Math.round(p.mastery_points / 1000)}k`
+          : (p.mastery_level > 0 ? `M${p.mastery_level}` : (isEn ? 'New' : 'Nuevo'));
+        const tagsHtml = (p.tags || []).map(tg => `<span class="scout-tag ${tg.cls}">${tg.text}</span>`).join('');
+        return `
+          <div class="scout-row ${p.is_me ? 'is-me' : ''}">
+            <img src="${champImgUrl(p.champion)}" alt="${displayName(p.champion)}" class="scout-avatar" onerror="this.src='${champImgUrl('Aatrox')}'">
+            <div class="scout-info">
+              <div class="scout-top-line">
+                <span class="scout-champ">${displayName(p.champion)}</span>
+                <span class="scout-name">${p.game_name || '—'}${p.is_me ? (isEn ? ' (You)' : ' (Vos)') : ''}</span>
+              </div>
+              <div class="scout-meta-line">
+                <span class="scout-rank">${rankTxt}</span>
+                <span>·</span>
+                ${wrTxt}
+                <span>·</span>
+                <span class="scout-mastery">${ptsTxt}</span>
+              </div>
+              ${tagsHtml ? `<div class="scout-tags">${tagsHtml}</div>` : ''}
+            </div>
+          </div>
+        `;
+      };
+
+      const allyAvg = s.ally_avg_wr != null ? ` · ${isEn ? 'Avg' : 'Prom'} ${s.ally_avg_wr}% WR` : '';
+      const enemyAvg = s.enemy_avg_wr != null ? ` · ${isEn ? 'Avg' : 'Prom'} ${s.enemy_avg_wr}% WR` : '';
+
+      gridEl.innerHTML = `
+        <div class="scout-col ally-col">
+          <div class="scout-col-title ally">🔵 ${isEn ? 'ALLIES' : 'ALIADOS'}${allyAvg}</div>
+          ${(data.allies || []).map(renderPlayerRow).join('')}
+        </div>
+        <div class="scout-col enemy-col">
+          <div class="scout-col-title enemy">🔴 ${isEn ? 'ENEMIES' : 'RIVALES'}${enemyAvg}</div>
+          ${(data.enemies || []).map(renderPlayerRow).join('')}
+        </div>
+      `;
+    } catch {
+      gridEl.innerHTML = `<p class="coach-muted" style="grid-column:1/-1;text-align:center;padding:1rem;">${isEn ? 'Could not scout players right now (check Riot API key or click Rescout).' : 'No se pudo completar el scouting ahora (revisá tu API key o tocá Re-escanear).'}</p>`;
+    }
   }
 
   _tickSpellTimers() {
